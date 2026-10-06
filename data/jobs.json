@@ -1,0 +1,14 @@
+[
+  {"id":"j01","title":"Python Backend Developer","description":"Required: Python, Django, PostgreSQL, REST APIs, testing and two years of backend experience. Preferred: Docker.","location":"Karachi","work_mode":"hybrid"},
+  {"id":"j02","title":"Junior Python API Developer","description":"Required: Python, FastAPI, SQL and Git. Zero to two years of experience. Preferred: Django and unit testing.","location":"Pakistan","work_mode":"remote"},
+  {"id":"j03","title":"Senior Backend Engineer","description":"Required: Python, Django, PostgreSQL, distributed systems and six years of backend experience. Preferred: Kubernetes.","location":"London","work_mode":"onsite"},
+  {"id":"j04","title":"Frontend Developer","description":"Required: JavaScript, React, CSS, HTML and two years of frontend experience. Preferred: TypeScript.","location":"Karachi","work_mode":"hybrid"},
+  {"id":"j05","title":"Data Analyst","description":"Required: SQL, Excel, dashboards, statistics and one year of analytics experience. Preferred: Python and pandas.","location":"Pakistan","work_mode":"remote"},
+  {"id":"j06","title":"Junior Data Scientist","description":"Required: Python, pandas, scikit-learn, statistics and machine learning projects. Preferred: SQL and model evaluation. Zero to two years of experience.","location":"Pakistan","work_mode":"remote"},
+  {"id":"j07","title":"Machine Learning Engineer","description":"Required: Python, scikit-learn, model evaluation, Docker, FastAPI and two years of production machine learning experience. Preferred: MLflow.","location":"Karachi","work_mode":"hybrid"},
+  {"id":"j08","title":"Senior NLP Scientist","description":"Required: Python, transformers, natural language processing, research publications and five years of research experience. Preferred: PyTorch.","location":"Berlin","work_mode":"onsite"},
+  {"id":"j09","title":"React UI Engineer","description":"Required: React, JavaScript, TypeScript, CSS, accessibility and two years of frontend experience. Preferred: testing.","location":"Pakistan","work_mode":"remote"},
+  {"id":"j10","title":"Junior Web Developer","description":"Required: HTML, CSS, JavaScript and Git. Zero to one year of experience. Preferred: React.","location":"Karachi","work_mode":"hybrid"},
+  {"id":"j11","title":"DevOps Engineer","description":"Required: Linux, Docker, Kubernetes, AWS, CI/CD and three years of infrastructure experience. Preferred: Python.","location":"Pakistan","work_mode":"remote"},
+  {"id":"j12","title":"Java Backend Developer","description":"Required: Java, Spring, SQL, REST APIs and two years of backend experience. Preferred: PostgreSQL.","location":"Karachi","work_mode":"hybrid"}
+]

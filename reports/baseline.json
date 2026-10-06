@@ -1,0 +1,71 @@
+{
+  "approach": "tfidf",
+  "label_status": "provisional_not_human_reviewed",
+  "jobs": 12,
+  "profiles": 3,
+  "pairs": 36,
+  "ndcg_at_10": 0.9867278017622186,
+  "precision_at_5": 0.4666666666666666,
+  "p95_response_ms": 0.0526,
+  "latency_scope": "warm in-process retrieval, excludes indexing, file I/O, network and UI",
+  "latency_samples": 300,
+  "paid_api_cost_usd_per_search": 0,
+  "infrastructure_cost_usd_per_search": null,
+  "per_profile": [
+    {
+      "profile_id": "p01",
+      "ndcg_at_10": 0.9727489140069893,
+      "precision_at_5": 0.4,
+      "ranking": [
+        "j01",
+        "j02",
+        "j12",
+        "j03",
+        "j10",
+        "j09",
+        "j07",
+        "j04",
+        "j11",
+        "j06"
+      ]
+    },
+    {
+      "profile_id": "p02",
+      "ndcg_at_10": 0.9874344912796669,
+      "precision_at_5": 0.4,
+      "ranking": [
+        "j06",
+        "j05",
+        "j07",
+        "j10",
+        "j02",
+        "j12",
+        "j01",
+        "j03",
+        "j11",
+        "j08"
+      ]
+    },
+    {
+      "profile_id": "p03",
+      "ndcg_at_10": 1.0,
+      "precision_at_5": 0.6,
+      "ranking": [
+        "j04",
+        "j09",
+        "j10",
+        "j02",
+        "j01",
+        "j12",
+        "j06",
+        "j07",
+        "j03",
+        "j11"
+      ]
+    }
+  ],
+  "environment": {
+    "python": "3.12.14",
+    "platform": "Windows-11-10.0.29639-SP0"
+  }
+}

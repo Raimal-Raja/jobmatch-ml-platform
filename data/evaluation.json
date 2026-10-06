@@ -1,0 +1,12 @@
+{
+  "profiles": [
+    {"id":"p01","text":"Python Django PostgreSQL REST APIs unit testing Git Docker. Two years backend developer experience. Based in Karachi; hybrid or Pakistan remote work."},
+    {"id":"p02","text":"Python pandas scikit-learn statistics SQL machine learning model evaluation projects. One year data analyst experience. Pakistan remote work."},
+    {"id":"p03","text":"React JavaScript TypeScript HTML CSS accessibility Git testing. Two years frontend developer experience. Karachi hybrid or Pakistan remote work."}
+  ],
+  "judgments": {
+    "p01":{"j01":3,"j02":3,"j03":1,"j04":0,"j05":1,"j06":1,"j07":1,"j08":0,"j09":0,"j10":1,"j11":1,"j12":1},
+    "p02":{"j01":1,"j02":1,"j03":0,"j04":0,"j05":3,"j06":3,"j07":1,"j08":1,"j09":0,"j10":0,"j11":0,"j12":0},
+    "p03":{"j01":0,"j02":0,"j03":0,"j04":3,"j05":0,"j06":0,"j07":0,"j08":0,"j09":3,"j10":3,"j11":0,"j12":0}
+  }
+}
