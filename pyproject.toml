@@ -4,10 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "jobmatch-ml-platform"
-version = "0.1.0"
+version = "0.2.0"
 description = "Evidence-grounded job retrieval and evaluation"
 requires-python = ">=3.10"
 dependencies = []
+
+[project.optional-dependencies]
+resume = ["pypdf>=5,<7"]
 
 [tool.setuptools.packages.find]
 include = ["jobmatch*"]

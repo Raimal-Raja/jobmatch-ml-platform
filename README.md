@@ -2,9 +2,11 @@
 
 An incremental Python project that will retrieve jobs for an editable résumé profile, compare keyword and semantic ranking, and explain strengths and gaps using source evidence. Match scores are ranking signals, never probabilities of getting hired.
 
-## Current status: Step 1 implemented
+## Current status: Steps 1 and 2 implemented
 
-The working sample provides dependency-free TF-IDF cosine retrieval, 12 fictional job listings, three fictional profiles, a relevance rubric, complete provisional labels for 36 pairs, reproducible metrics, and automated checks. Human review of the labels remains pending. Résumé uploads, semantic models, reranking, APIs and the UI are future steps.
+The working sample provides dependency-free TF-IDF cosine retrieval, 12 fictional job listings, three fictional profiles, a relevance rubric, complete provisional labels for 36 pairs, reproducible metrics, and automated checks. Step 2 adds local PDF import, editable profiles, source evidence, confirmed-profile search and deletion through the CLI. Human review of evaluation labels remains pending. Browser uploads, semantic models, reranking, APIs and the UI are future steps.
+
+GitHub repository: [Raimal-Raja/jobmatch-ml-platform](https://github.com/Raimal-Raja/jobmatch-ml-platform).
 
 ## Run the sample
 
@@ -25,6 +27,37 @@ On Windows, use `py -3` if Python is installed through the launcher. In this Cod
 ```
 
 Search prints listings and cosine scores as JSON. Evaluation writes `reports/baseline.json`; use `--output path/to/report.json` to save another run. Timings vary by machine and load.
+
+## Step 2: PDF résumés and editable profiles
+
+Install the optional PDF dependency in a virtual environment. Step 1 continues to work without it. Commands run from a source checkout:
+
+```sh
+python -m venv .venv
+# Windows PowerShell: .venv\Scripts\Activate.ps1
+# macOS/Linux: source .venv/bin/activate
+python -m pip install -e ".[resume]"
+python -m jobmatch resume data/sample_resume.pdf
+```
+
+The import prints an `id` and a draft with skills, experience and education. Substitute that ID below. The supplied corrections match the fictional sample; for your own résumé, write a JSON file containing corrected lists of `skills`, `experience` and `education`. Each supplied list replaces that field, and an empty list clears it. Omitted fields retain their current values.
+
+```sh
+python -m jobmatch profile show PROFILE_ID
+python -m jobmatch profile update PROFILE_ID --corrections data/sample_corrections.json
+python -m jobmatch profile search PROFILE_ID
+python -m jobmatch profile delete PROFILE_ID
+```
+
+Each extracted candidate has an exact quotation, page number and character offsets into that page's extracted text. Candidates start unconfirmed. Corrections confirm selected values; new user-entered values are marked `origin: user` with no fabricated PDF evidence. Search uses only confirmed fields. This is manual JSON editing through a CLI; a browser-based editor is planned in Step 5.
+
+The store retains an imported PDF copy and its profile under ignored `private_data/profiles/`. Delete removes both stored files and the profile directory while preserving the original input PDF. Files are local and unencrypted; no résumé data is sent to a model or service. This single-user CLI has no authentication or server-side isolation yet. Avoid sharing terminal output containing personal data.
+
+Input checks reject non-PDF, malformed, encrypted, empty/scanned PDFs, files over 10 MiB, more than 20 pages, and extracted text over 200,000 characters. OCR is not implemented. Skill extraction uses a small explicit vocabulary and detects mentions, including potentially negated mentions; confirmation is essential. Experience and education require recognized section headings and preserve source lines rather than inferring duration or degree equivalence. Multi-column PDFs may extract in the wrong order. These parser limits are not a hardened untrusted-upload sandbox; resource-isolated processing is needed before public uploads.
+
+Validation: **8 tests passed**, including real PDF import, exact evidence spans, correction persistence, confirmed-only search, deletion preserving the original, malformed/blank/encrypted/oversized inputs, page limits and invalid IDs. The CLI import → correction → search → deletion flow was also verified with the fictional sample. Tests for PDF functionality require the optional dependency; without it those three tests skip. The bundled Codex Python already includes `pypdf`.
+
+The fictional sample can be regenerated with `python scripts/create_sample_resume.py`, without third-party packages. See [profile design](docs/profiles.md) for the data contract.
 
 ## Step 1 measured results
 
@@ -47,8 +80,8 @@ Each step ends with a working sample, relevant verification and a README update 
 | Step | Deliverable | Completion check | Status |
 | --- | --- | --- | --- |
 | 1 | Clean fictional data, TF-IDF retrieval and evaluation harness | Search runs; metrics saved; tests pass | Implemented; human label review pending |
-| 2 | PDF parsing and editable structured profiles | Extracted text has source references; user corrections persist; deletion works | Next |
-| 3 | Sentence-transformer retrieval | Same evaluation compares TF-IDF and embeddings; model/version recorded | Planned |
+| 2 | PDF parsing and editable structured profiles | Extracted text has source references; user corrections persist; deletion works | Implemented (CLI) |
+| 3 | Sentence-transformer retrieval | Same evaluation compares TF-IDF and embeddings; model/version recorded | Next |
 | 4 | Cross-encoder reranking and constraint handling | Compare all three methods; record latency and costs; test required/preferred distinctions | Planned |
 | 5 | FastAPI and Streamlit evidence/skill-gap interface | Quotes trace to sources; gaps and learning priorities do not invent qualifications | Planned |
 | 6 | PostgreSQL/pgvector, ingestion, Docker and CI | Permitted provenance, validation, duplicate controls, privacy and integration checks | Planned |
@@ -65,7 +98,7 @@ The six-week proposal guides scheduling; these seven implementation checkpoints 
 - `reports/baseline.json`: measured baseline, per-profile rankings and environment.
 - `tests/test_baseline.py`: search behavior, known metric values and incomplete-label rejection.
 
-IDF is fitted only on job documents. Evaluation profiles do not fit the index. Normalized exact duplicate listings and duplicate IDs are rejected. No résumé files or personal data are collected at this stage. Keep future private data under the ignored `private_data/` directory.
+IDF is fitted only on job documents. Evaluation profiles do not fit the index. Normalized exact duplicate listings and duplicate IDs are rejected. Imported résumé files and profiles stay under ignored `private_data/`; only fictional sample data belongs in version control.
 
 ## Limitations
 

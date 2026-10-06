@@ -1,0 +1,5 @@
+{
+  "skills": ["Python", "Django", "PostgreSQL", "Git"],
+  "experience": ["Backend Developer, Example Labs, 2023-2025", "Built Python Django REST APIs using PostgreSQL."],
+  "education": ["BS Computer Science, Fictional University, 2023"]
+}
