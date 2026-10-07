@@ -2,9 +2,9 @@
 
 An incremental Python project that will retrieve jobs for an editable résumé profile, compare keyword and semantic ranking, and explain strengths and gaps using source evidence. Match scores are ranking signals, never probabilities of getting hired.
 
-## Current status: Steps 1 and 2 implemented
+## Current status: Steps 1, 2 and 3 implemented
 
-The working sample provides dependency-free TF-IDF cosine retrieval, 12 fictional job listings, three fictional profiles, a relevance rubric, complete provisional labels for 36 pairs, reproducible metrics, and automated checks. Step 2 adds local PDF import, editable profiles, source evidence, confirmed-profile search and deletion through the CLI. Human review of evaluation labels remains pending. Browser uploads, semantic models, reranking, APIs and the UI are future steps.
+The working sample provides dependency-free TF-IDF cosine retrieval, 12 fictional job listings, three fictional profiles, a relevance rubric, complete provisional labels for 36 pairs, reproducible metrics, and automated checks. Step 2 adds local PDF import, editable profiles, source evidence, confirmed-profile search and deletion through the CLI. Step 3 adds local sentence-transformer retrieval and a shared comparison benchmark. Human review of evaluation labels remains pending. Browser uploads, cross-encoder reranking, APIs and the UI are future steps.
 
 GitHub repository: [Raimal-Raja/jobmatch-ml-platform](https://github.com/Raimal-Raja/jobmatch-ml-platform).
 
@@ -59,6 +59,36 @@ Validation: **8 tests passed**, including real PDF import, exact evidence spans,
 
 The fictional sample can be regenerated with `python scripts/create_sample_resume.py`, without third-party packages. See [profile design](docs/profiles.md) for the data contract.
 
+## Step 3: semantic retrieval and comparison
+
+Use the virtual environment from Step 2, then install the semantic extra:
+
+```sh
+python -m pip install -e ".[resume,semantic]"
+python -m jobmatch search "building web APIs with relational databases" --approach semantic
+python -m jobmatch compare
+```
+
+The first semantic command downloads the public `all-MiniLM-L6-v2` model into ignored `.model_cache/`. No paid credentials are required. Model inference stays local on CPU; profile text is not sent to a hosted inference API. The main ML packages and model revision are pinned. Both keyword and semantic scores are ranking signals.
+
+After downloading, offline commands use only cached model files:
+
+```sh
+python -m jobmatch compare --offline --repeats 100
+python -m jobmatch profile search PROFILE_ID --approach semantic --offline
+```
+
+The benchmark writes `reports/comparison.json` with both approaches, per-profile rankings, NDCG@10, Precision@5, p95 time, paid API cost, model metadata and a fixture fingerprint. It benchmarks fresh query embeddings, with precomputed job vectors, and does not include model setup in response latency. Setup time is reported separately. Infrastructure cost remains unmeasured.
+
+Run the three optional real-model tests after the download:
+
+```powershell
+$env:JOBMATCH_RUN_MODEL_TESTS = '1'
+python -m unittest discover -s tests -v
+```
+
+On macOS/Linux, use `JOBMATCH_RUN_MODEL_TESTS=1 python -m unittest discover -s tests -v`. Without that flag, tests never download model files. See [semantic design and limitations](docs/semantic.md).
+
 ## Step 1 measured results
 
 Measured using Python 3.12.14 on Windows, with 12 jobs, three profiles, 36 provisional labels and 300 warm latency samples:
@@ -81,8 +111,8 @@ Each step ends with a working sample, relevant verification and a README update 
 | --- | --- | --- | --- |
 | 1 | Clean fictional data, TF-IDF retrieval and evaluation harness | Search runs; metrics saved; tests pass | Implemented; human label review pending |
 | 2 | PDF parsing and editable structured profiles | Extracted text has source references; user corrections persist; deletion works | Implemented (CLI) |
-| 3 | Sentence-transformer retrieval | Same evaluation compares TF-IDF and embeddings; model/version recorded | Next |
-| 4 | Cross-encoder reranking and constraint handling | Compare all three methods; record latency and costs; test required/preferred distinctions | Planned |
+| 3 | Sentence-transformer retrieval | Same evaluation compares TF-IDF and embeddings; model/version recorded | Implemented |
+| 4 | Cross-encoder reranking and constraint handling | Compare all three methods; record latency and costs; test required/preferred distinctions | Next |
 | 5 | FastAPI and Streamlit evidence/skill-gap interface | Quotes trace to sources; gaps and learning priorities do not invent qualifications | Planned |
 | 6 | PostgreSQL/pgvector, ingestion, Docker and CI | Permitted provenance, validation, duplicate controls, privacy and integration checks | Planned |
 | 7 | Expanded human-reviewed evaluation, MLflow and demo deployment | Frozen evaluation split, reproducible comparison, architecture diagram and two-minute demo | Planned |
