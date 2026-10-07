@@ -107,7 +107,7 @@ Semantic NDCG improved by **0.0061 absolute** on this fixture, with unchanged Pr
 
 The committed [comparison report](reports/comparison.json) is recovered from that run's JSON stdout and includes its source commit/run provenance. [Installed dependency versions](reports/benchmark-requirements.txt) are reconstructed from the successful installation log. The workflow also publishes the original report and `pip freeze` snapshot as a downloadable artifact; artifacts expire, while the committed results remain available. To reproduce the Linux package snapshot, install `python -m pip install -r reports/benchmark-requirements.txt`, then run commands from the checkout. The default extra pins the main ML packages; the snapshot pins transitive versions for Python 3.12 on Linux and may not suit other Python/platform versions.
 
-The [retrieval benchmark workflow](.github/workflows/retrieval-benchmark.yml) runs on relevant pushes to `main` and supports manual runs in GitHub's Actions tab. It installs the CPU wheel, benchmarks both methods and tests offline model reuse. Broader application CI remains planned for Step 6.
+The [retrieval benchmark workflow](.github/workflows/retrieval-benchmark.yml) runs on relevant pushes to `main` and supports manual runs in GitHub's Actions tab. It installs the CPU wheel, benchmarks all three methods and tests offline model reuse. Application CI also verifies the browser, Docker and PostgreSQL integrations.
 
 ## Step 1 measured results
 
@@ -134,7 +134,7 @@ Each step ends with a working sample, relevant verification and a README update 
 | 3 | Sentence-transformer retrieval | Same evaluation compares TF-IDF and embeddings; model/version recorded | Implemented |
 | 4 | Cross-encoder reranking and constraint handling | Compare all three methods; record latency and costs; test required/preferred distinctions | Implemented |
 | 5 | FastAPI and browser evidence/skill-gap interface | Quotes trace to sources; gaps and learning priorities do not invent qualifications | Verified by browser CI |
-| 6 | PostgreSQL/pgvector, ingestion, Docker and CI | Permitted provenance, validation, duplicate controls, privacy and integration checks | Implemented; Docker/database CI pending |
+| 6 | PostgreSQL/pgvector, ingestion, Docker and CI | Permitted provenance, validation, duplicate controls, privacy and integration checks | Implemented; Docker/database CI passed |
 | 7 | Review workflow, MLflow, architecture and demo materials | Human review and deployment validation before public release | Release materials implemented; human review/public deployment pending |
 
 The six-week proposal guides scheduling; these seven implementation checkpoints keep individual changes reviewable. Human review should start now and expand throughout the build. Future model selection must use development data separate from the final evaluation set.
