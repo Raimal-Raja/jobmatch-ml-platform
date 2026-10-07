@@ -89,6 +89,26 @@ python -m unittest discover -s tests -v
 
 On macOS/Linux, use `JOBMATCH_RUN_MODEL_TESTS=1 python -m unittest discover -s tests -v`. Without that flag, tests never download model files. See [semantic design and limitations](docs/semantic.md).
 
+### Step 3 measured comparison
+
+Measured on the same 12 jobs, three fictional profiles and 36 provisional pairs, with 300 warm queries per method, in [successful GitHub Actions run 37585828984](https://github.com/Raimal-Raja/jobmatch-ml-platform/actions/runs/37585828984). The runner used Ubuntu 24.04, Python 3.12.15, CPU PyTorch 2.8.0 and one inference thread.
+
+| Metric | TF-IDF | Semantic |
+| --- | ---: | ---: |
+| NDCG@10 | 0.9867 | 0.9929 |
+| Precision@5 | 0.4667 | 0.4667 |
+| p95 warm retrieval | 0.0449 ms | 10.5201 ms |
+| Paid API cost/search | US$0 | US$0 |
+| Infrastructure cost/search | Not measured | Not measured |
+
+Semantic NDCG improved by **0.0061 absolute** on this fixture, with unchanged Precision@5 and substantially higher retrieval latency. This small, provisional benchmark does not establish generalization. Semantic search still ranks the senior backend job third for the two-year backend profile despite its six-year requirement; constraint handling remains Step 4 work.
+
+**All 13 tests passed on GitHub Actions**, including three real-model tests using the offline cached model. Locally, 10 tests passed with the three model tests skipped; the local semantic dependency download was too slow to complete, so measured semantic results come from the Linux runner. Core keyword and résumé workflows remain verified locally.
+
+The committed [comparison report](reports/comparison.json) is recovered from that run's JSON stdout and includes its source commit/run provenance. [Installed dependency versions](reports/benchmark-requirements.txt) are reconstructed from the successful installation log. The workflow also publishes the original report and `pip freeze` snapshot as a downloadable artifact; artifacts expire, while the committed results remain available. To reproduce the Linux package snapshot, install `python -m pip install -r reports/benchmark-requirements.txt`, then run commands from the checkout. The default extra pins the main ML packages; the snapshot pins transitive versions for Python 3.12 on Linux and may not suit other Python/platform versions.
+
+The [retrieval benchmark workflow](.github/workflows/retrieval-benchmark.yml) runs on relevant pushes to `main` and supports manual runs in GitHub's Actions tab. It installs the CPU wheel, benchmarks both methods and tests offline model reuse. Broader application CI remains planned for Step 6.
+
 ## Step 1 measured results
 
 Measured using Python 3.12.14 on Windows, with 12 jobs, three profiles, 36 provisional labels and 300 warm latency samples:
