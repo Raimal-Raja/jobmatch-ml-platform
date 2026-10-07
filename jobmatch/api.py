@@ -38,6 +38,7 @@ def create_app(store=None, jobs=None):
     jobs = jobs or load_jobs(os.environ.get("JOBMATCH_JOB_DATA", ROOT / "data/jobs.json"))
     cache = {}
     lock = threading.RLock()
+    search_locks = {name: threading.RLock() for name in ("tfidf", "semantic", "reranked")}
 
     @app.middleware("http")
     async def local_origin_and_privacy(request, call_next):
@@ -116,7 +117,7 @@ def create_app(store=None, jobs=None):
             context["skills"] = [item["value"] for item in profile["skills"] if item["confirmed"]]
         if not query.strip():
             raise ValueError("Enter a query or confirm a résumé profile")
-        with lock:
+        with search_locks[body.approach]:
             if body.approach not in cache:
                 try:
                     cache[body.approach] = make_retriever(jobs, body.approach)

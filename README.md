@@ -226,6 +226,8 @@ Application CI verifies keyword/PDF/API tests, a Chromium workflow, a Docker hea
 
 ### Incremental fix: real résumé upload feedback
 
+Each search approach now has its own initialization/inference lock. A slow semantic model download no longer holds the keyword search lock. Validation: 25 local tests passed, with five optional model/database tests skipped; a concurrency regression test holds semantic initialization open and confirms a keyword request still completes. Optional model dependencies are installed in the development workspace; first-use model-weight verification remains separate from installation.
+
 The interface now disables semantic/reranked choices when their optional model dependencies are missing and labels them `setup required`. `/health` reports dependency availability; it does not claim models are downloaded or usable until a search succeeds. The interface script is UTF-8. Validation: 24 local tests passed, with five optional model/database tests skipped, including missing-dependency reporting.
 
 Browser verification targets the search status explicitly because profile feedback has its own live status region. Local semantic/reranked installation and first-use downloads must finish before these modes are considered locally verified; a successful CI model benchmark does not establish that a particular desktop has installed them.

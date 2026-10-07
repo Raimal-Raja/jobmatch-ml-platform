@@ -50,3 +50,27 @@ class ApiTests(unittest.TestCase):
         with patch("jobmatch.api.find_spec", return_value=None):
             modes = self.client.get("/health").json()["search_modes"]
         self.assertEqual(modes, {"tfidf": True, "semantic": False, "reranked": False})
+
+    def test_loading_semantic_model_does_not_block_keyword_search(self):
+        from concurrent.futures import ThreadPoolExecutor
+        from threading import Event
+        from unittest.mock import patch
+        from jobmatch.retrieval import TfidfRetriever
+        loading, release = Event(), Event()
+
+        def make(jobs, approach):
+            if approach == "semantic":
+                loading.set()
+                if not release.wait(5):
+                    raise RuntimeError("Test model load was not released")
+            return TfidfRetriever(jobs)
+
+        with patch("jobmatch.api.make_retriever", side_effect=make), ThreadPoolExecutor(max_workers=2) as pool:
+            semantic = pool.submit(self.client.post, "/search", json={"query": "Python", "approach": "semantic"})
+            try:
+                self.assertTrue(loading.wait(2))
+                keyword = pool.submit(self.client.post, "/search", json={"query": "Python"})
+                self.assertEqual(keyword.result(timeout=2).status_code, 200)
+            finally:
+                release.set()
+            self.assertEqual(semantic.result(timeout=2).status_code, 200)
