@@ -1,6 +1,7 @@
 """Single-user local demonstration API and evidence-based interface."""
 import threading
 import os
+from importlib.util import find_spec
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Request
@@ -68,7 +69,10 @@ def create_app(store=None, jobs=None):
 
     @app.get("/health")
     def health():
-        return {"status": "ok", "jobs": len(jobs)}
+        model_dependencies = all(find_spec(name) is not None for name in ("torch", "sentence_transformers"))
+        return {"status": "ok", "jobs": len(jobs),
+                "search_modes": {"tfidf": True, "semantic": model_dependencies, "reranked": model_dependencies},
+                "model_notice": "Model modes need installed dependencies and a first-use model download; availability does not guarantee cached models."}
 
     @app.get("/sample-resume")
     def sample():

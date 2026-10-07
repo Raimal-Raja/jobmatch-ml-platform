@@ -44,3 +44,9 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(self.client.get("/health").headers["Cache-Control"], "no-store")
         self.assertEqual(self.client.get("/").status_code, 200)
         self.assertEqual(self.client.get("/assets/app.js").status_code, 200)
+
+    def test_health_reports_missing_model_dependencies(self):
+        from unittest.mock import patch
+        with patch("jobmatch.api.find_spec", return_value=None):
+            modes = self.client.get("/health").json()["search_modes"]
+        self.assertEqual(modes, {"tfidf": True, "semantic": False, "reranked": False})

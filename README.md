@@ -226,6 +226,8 @@ Application CI verifies keyword/PDF/API tests, a Chromium workflow, a Docker hea
 
 ### Incremental fix: real résumé upload feedback
 
+The interface now disables semantic/reranked choices when their optional model dependencies are missing and labels them `setup required`. `/health` reports dependency availability; it does not claim models are downloaded or usable until a search succeeds. The interface script is UTF-8. Validation: 24 local tests passed, with five optional model/database tests skipped, including missing-dependency reporting.
+
 Summary employment extraction now recognizes explicit role-at-employer statements when no experience section was extracted. It keeps an exact source sentence (including PDF line wrapping) as evidence and displays a single-line draft for correction. These entries are unconfirmed; no dates, duration or employment from projects are inferred. Validation: 23 local tests passed, with five optional model/database tests skipped, including a regression check for wrapped summary statements.
 
 PDF selection, extraction, profile confirmation and job search are separate actions. Upload feedback now appears beside the profile controls, including extraction progress and the next action. Common headings such as `Professional Summary`, `Key Projects` and `Education & Certifications` are recognized. Combined education/certification entries remain source lines requiring review, and projects are not converted into employment experience. Existing confirmed profiles are preserved; parser changes apply to new imports. Validation: 22 local tests passed, with five optional model/database tests skipped.
