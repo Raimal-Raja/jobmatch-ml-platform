@@ -10,6 +10,14 @@ from scripts.create_sample_resume import sample_pdf
 
 
 class DraftTests(unittest.TestCase):
+    def test_combined_education_heading_and_project_boundary(self):
+        text = "Professional Summary\nPython developer\nEducation & Certifications\nBS Computing\nKey Projects\nBuilt a Django app\n"
+        profile = draft_profile([{"page": 1, "text": text}])
+        self.assertEqual([item["value"] for item in profile["education"]], ["BS Computing"])
+        self.assertEqual(profile["experience"], [])
+        proof = profile["education"][0]["evidence"]
+        self.assertEqual(text[proof["start"]:proof["end"]], "BS Computing")
+
     def test_mentions_are_unconfirmed_and_evidence_is_exact(self):
         text = "Skills\nNo experience with Python\nEducation\nBS Computer Science\n"
         profile = draft_profile([{"page": 1, "text": text}])

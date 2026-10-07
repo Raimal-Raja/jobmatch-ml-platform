@@ -13,7 +13,10 @@ SKILLS = ("Python", "Django", "FastAPI", "PostgreSQL", "SQL", "Docker", "Git",
 SECTIONS = {"experience": "experience", "work experience": "experience",
             "professional experience": "experience", "education": "education",
             "skills": "skills", "technical skills": "skills", "projects": "projects",
-            "summary": "summary", "certifications": "certifications"}
+            "summary": "summary", "professional summary": "summary",
+            "key projects": "projects", "certifications": "certifications",
+            "education & certifications": "education",
+            "education and certifications": "education"}
 
 
 def extract_pages(pdf_bytes):

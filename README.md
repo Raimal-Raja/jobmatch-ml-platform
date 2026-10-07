@@ -224,6 +224,10 @@ Application CI verifies keyword/PDF/API tests, a Chromium workflow, a Docker hea
 
 ## Step 7: release materials and honest completion status
 
+### Incremental fix: real résumé upload feedback
+
+PDF selection, extraction, profile confirmation and job search are separate actions. Upload feedback now appears beside the profile controls, including extraction progress and the next action. Common headings such as `Professional Summary`, `Key Projects` and `Education & Certifications` are recognized. Combined education/certification entries remain source lines requiring review, and projects are not converted into employment experience. Existing confirmed profiles are preserved; parser changes apply to new imports. Validation: 22 local tests passed, with five optional model/database tests skipped.
+
 The [architecture diagram](docs/architecture.md), [two-minute demo instructions](docs/demo.md), failure cases and [36-pair human review worksheet](data/review_worksheet.csv) are prepared. Watch the [captioned two-minute demo](reports/two-minute-demo.webm) or view the [interface screenshot](reports/ui-demo.png), recorded with fictional data by Application CI. These are also available in its `interface-proof` artifact. A blank worksheet cannot be applied as reviewed evaluation; grade, reviewer, rationale and exact evidence are required for every pair. Use the [review commands](docs/evaluation.md) to produce a reviewed fixture and benchmark it separately.
 
 Optional local experiment tracking:
