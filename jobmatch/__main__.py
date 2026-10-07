@@ -20,6 +20,7 @@ def main():
     search.add_argument("--offline", action="store_true", help="Use cached model files only")
     benchmark = sub.add_parser("evaluate")
     benchmark.add_argument("--output", type=Path, default=ROOT / "reports/baseline.json")
+    benchmark.add_argument("--fixture", type=Path, default=ROOT / "data/evaluation.json")
     ingestion = sub.add_parser("ingest", help="Import explicitly permitted manual job JSON")
     ingestion.add_argument("file", type=Path)
     ingestion.add_argument("--output", type=Path, default=ROOT / "private_data/jobs.json")
@@ -30,6 +31,13 @@ def main():
     comparison.add_argument("--output", type=Path, default=ROOT / "reports/comparison.json")
     comparison.add_argument("--repeats", type=int, default=100)
     comparison.add_argument("--offline", action="store_true")
+    comparison.add_argument("--fixture", type=Path, default=ROOT / "data/evaluation.json")
+    comparison.add_argument("--mlflow-dir", type=Path)
+    for name in ("review-export", "review-apply"):
+        review = sub.add_parser(name)
+        review.add_argument("file", type=Path)
+        if name == "review-apply":
+            review.add_argument("--output", type=Path, default=ROOT / "private_data/evaluation_reviewed.json")
     resume = sub.add_parser("resume", help="Import PDF and print a draft profile")
     resume.add_argument("pdf", type=Path)
     profile = sub.add_parser("profile")
@@ -39,6 +47,16 @@ def main():
     profile.add_argument("--approach", choices=("tfidf", "semantic", "reranked"), default="tfidf")
     profile.add_argument("--offline", action="store_true")
     args = parser.parse_args()
+    if args.command in ("review-export", "review-apply"):
+        from .review import export_review, apply_review
+        fixture = json.loads((ROOT / "data/evaluation.json").read_text(encoding="utf-8"))
+        try:
+            result = (export_review(load_jobs(), fixture, args.file) if args.command == "review-export"
+                      else apply_review(load_jobs(), fixture, args.file, args.output))
+            print(json.dumps(result, indent=2))
+        except (ValueError, OSError) as exc:
+            parser.error(str(exc))
+        return
     if args.command == "index-postgres":
         from .postgres import PgvectorStore
         from .semantic import SemanticRetriever
@@ -88,15 +106,22 @@ def main():
         except (ValueError, OSError) as exc:
             parser.error(str(exc))
     else:
-        fixture = json.loads((ROOT / "data/evaluation.json").read_text(encoding="utf-8"))
+        fixture = json.loads(args.fixture.read_text(encoding="utf-8"))
+        label_status = fixture.get("review_status", "provisional_not_human_reviewed")
         try:
-            report = (compare(jobs, fixture["profiles"], fixture["judgments"], args.repeats, args.offline)
-                      if args.command == "compare" else evaluate(jobs, fixture["profiles"], fixture["judgments"]))
+            report = (compare(jobs, fixture["profiles"], fixture["judgments"], args.repeats, args.offline, label_status)
+                      if args.command == "compare" else evaluate(jobs, fixture["profiles"], fixture["judgments"], label_status=label_status))
         except (ValueError, OSError) as exc:
             parser.error(str(exc))
         report["environment"] = {"python": platform.python_version(), "platform": platform.platform()}
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+        if args.command == "compare" and args.mlflow_dir:
+            from .tracking import log_comparison
+            try:
+                log_comparison(report, args.output, args.mlflow_dir)
+            except ValueError as exc:
+                parser.error(str(exc))
         print(json.dumps(report, indent=2))
 
 

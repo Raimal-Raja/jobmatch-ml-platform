@@ -15,7 +15,7 @@ def precision(ranked_ids, labels, k=5):
     return sum(labels.get(job_id, 0) >= 2 for job_id in ranked_ids[:k]) / k
 
 
-def evaluate(jobs, profiles, judgments, repeats=100, *, retriever=None, approach="tfidf"):
+def evaluate(jobs, profiles, judgments, repeats=100, *, retriever=None, approach="tfidf", label_status="provisional_not_human_reviewed"):
     if repeats < 1 or not profiles:
         raise ValueError("Evaluation needs profiles and positive repeats")
     job_ids = {job["id"] for job in jobs}
@@ -36,7 +36,7 @@ def evaluate(jobs, profiles, judgments, repeats=100, *, retriever=None, approach
             retriever.search(profile["text"])
             durations.append((time.perf_counter_ns() - start) / 1_000_000)
     return {
-        "approach": approach, "label_status": "provisional_not_human_reviewed",
+        "approach": approach, "label_status": label_status,
         "jobs": len(jobs), "profiles": len(profiles), "pairs": len(jobs) * len(profiles),
         "ndcg_at_10": sum(r["ndcg_at_10"] for r in rows) / len(rows),
         "precision_at_5": sum(r["precision_at_5"] for r in rows) / len(rows),
@@ -49,7 +49,7 @@ def evaluate(jobs, profiles, judgments, repeats=100, *, retriever=None, approach
     }
 
 
-def compare(jobs, profiles, judgments, repeats=100, offline=False):
+def compare(jobs, profiles, judgments, repeats=100, offline=False, label_status="provisional_not_human_reviewed"):
     import hashlib
     import json
     from .semantic import make_retriever
@@ -58,7 +58,7 @@ def compare(jobs, profiles, judgments, repeats=100, offline=False):
         start = time.perf_counter()
         retriever = make_retriever(jobs, approach, offline)
         setup = time.perf_counter() - start
-        report = evaluate(jobs, profiles, judgments, repeats, retriever=retriever, approach=approach)
+        report = evaluate(jobs, profiles, judgments, repeats, retriever=retriever, approach=approach, label_status=label_status)
         report["setup_seconds"] = setup
         report["model_metadata"] = getattr(retriever, "metadata", None)
         reports.append(report)

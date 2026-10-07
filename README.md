@@ -135,7 +135,7 @@ Each step ends with a working sample, relevant verification and a README update 
 | 4 | Cross-encoder reranking and constraint handling | Compare all three methods; record latency and costs; test required/preferred distinctions | Implemented |
 | 5 | FastAPI and browser evidence/skill-gap interface | Quotes trace to sources; gaps and learning priorities do not invent qualifications | Verified by browser CI |
 | 6 | PostgreSQL/pgvector, ingestion, Docker and CI | Permitted provenance, validation, duplicate controls, privacy and integration checks | Implemented; Docker/database CI pending |
-| 7 | Expanded human-reviewed evaluation, MLflow and demo deployment | Frozen evaluation split, reproducible comparison, architecture diagram and two-minute demo | Planned |
+| 7 | Review workflow, MLflow, architecture and demo materials | Human review and deployment validation before public release | Release materials implemented; human review/public deployment pending |
 
 The six-week proposal guides scheduling; these seven implementation checkpoints keep individual changes reviewable. Human review should start now and expand throughout the build. Future model selection must use development data separate from the final evaluation set.
 
@@ -221,3 +221,18 @@ Set `DATABASE_URL` to the local demo database (`postgresql://jobmatch:local_demo
 The pgvector implementation performs exact search. It still constructs an in-memory encoder/index during startup; removing that redundant startup encoding and adding approximate indexes are future scale improvements. Old versioned catalogs remain stored; there is no database retention policy yet. Résumé profiles stay in the local file store rather than PostgreSQL. See the [pgvector reference](https://github.com/pgvector/pgvector) for its cosine operator and exact/approximate search behavior.
 
 Application CI verifies keyword/PDF/API tests, a Chromium workflow, a Docker health/page smoke check and an ephemeral PostgreSQL vector ordering/stale-catalog check. The separate retrieval workflow downloads both real models and benchmarks all three methods. Database tests and model tests skip unless explicitly enabled, so a dependency-free local test run is not equivalent to full CI.
+
+## Step 7: release materials and honest completion status
+
+The [architecture diagram](docs/architecture.md), [two-minute demo instructions](docs/demo.md), failure cases and [36-pair human review worksheet](data/review_worksheet.csv) are prepared. Application CI records a captioned browser demo and screenshot as its `interface-proof` artifact. A blank worksheet cannot be applied as reviewed evaluation; grade, reviewer, rationale and exact evidence are required for every pair. Use the [review commands](docs/evaluation.md) to produce a reviewed fixture and benchmark it separately.
+
+Optional local experiment tracking:
+
+```sh
+python -m pip install -e ".[semantic,tracking]"
+python -m jobmatch compare --output reports/experiment.json --mlflow-dir private_data/experiments
+```
+
+MLflow stores metrics, fixture fingerprint, label status and the JSON report in a local experiment database/artifact store. Tracking is optional and needs no paid credentials. CI verifies logging while running the real-model benchmark.
+
+The functional local demo and engineering release materials are implemented. **The original full release is not yet complete:** an expanded human-reviewed evaluation, production upload isolation/authentication, a configured public hosting target and deployed end-to-end latency/cost measurements remain. The current corpus remains 12 fictional jobs and three profiles. Docker/loopback deployment is the supported demo mode; no public deployment or validated real-world accuracy is claimed. Résumé achievement numbers must keep these qualifications.

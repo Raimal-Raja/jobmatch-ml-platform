@@ -24,3 +24,16 @@ Latency is the nearest-rank p95 across 100 warm searches per profile (300 sample
 ## Known failures
 
 TF-IDF counts lexical overlap. It does not enforce location, experience or remote-work constraints, distinguish required from preferred skills, recognize synonyms, or understand negation. A senior listing can rank highly despite an experience gap. Scores are ranking signals only. This step generates no match explanations or learning plans.
+
+## Human-review handoff
+
+`data/review_worksheet.csv` contains all 36 pairs and blank grade/reviewer/rationale/evidence cells. It is deliberately not prefilled with the provisional judgments. Apply the rubric above, quote exact source text for each decision, and resolve disagreements. The tool validates complete pair coverage, unique pairs, grades 0–3 and quotations that actually occur in the source texts.
+
+```sh
+python -m jobmatch review-export private_data/review.csv
+# A human fills private_data/review.csv using the rubric.
+python -m jobmatch review-apply private_data/review.csv
+python -m jobmatch compare --fixture private_data/evaluation_reviewed.json --output reports/reviewed_comparison.json
+```
+
+The resulting label status is `reviewer_declared_human_review`: the software validates the declared review artifact, but cannot prove who performed the review. The committed results remain provisional. Expand the dataset and establish frozen development/test splits before tuning the shortlist, constraints, model choice or supervised reranker. No expanded or human-reviewed accuracy claim has been made.

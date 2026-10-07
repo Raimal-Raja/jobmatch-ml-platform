@@ -5,3 +5,4 @@ __pycache__/
 .env
 private_data/
 .model_cache/
+mlruns/
