@@ -70,6 +70,31 @@ def draft_profile(pages):
                 if re.search(r"(?<![\w+#])" + re.escape(skill) + r"(?![\w+#])", line, re.I):
                     fields["skills"].append({"value": skill, "origin": "extracted",
                                              "confirmed": False, "evidence": evidence})
+    # A summary can explicitly state employment even without an Experience heading.
+    # Keep the complete source sentence and require confirmation; infer no dates/years.
+    if not fields["experience"]:
+        headings = re.compile(r"^\s*(?:" + "|".join(re.escape(h) for h in SECTIONS) + r")\s*:?\s*$", re.I | re.M)
+        role = re.compile(r"\b(?:administrator|developer|engineer|analyst|intern|manager|consultant|assistant)\b[^.!?]{0,100}\bat\b", re.I)
+        for page in pages:
+            text = page["text"]
+            markers = list(headings.finditer(text))
+            for index, marker in enumerate(markers):
+                heading = marker.group().strip().lower().rstrip(":").strip()
+                if SECTIONS.get(heading) != "summary":
+                    continue
+                start = marker.end()
+                end = markers[index + 1].start() if index + 1 < len(markers) else len(text)
+                for sentence in re.finditer(r"[^.!?]+(?:[.!?]|$)", text[start:end]):
+                    quote = sentence.group()
+                    if not role.search(quote):
+                        continue
+                    leading = len(quote) - len(quote.lstrip())
+                    quote = quote.strip()
+                    offset = start + sentence.start() + leading
+                    fields["experience"].append({"value": " ".join(quote.split()),
+                        "origin": "extracted", "confirmed": False,
+                        "evidence": {"page": page["page"], "start": offset,
+                                     "end": offset + len(quote), "quote": quote}})
     return {"schema_version": 1, "reviewed": False, "pages": pages, **fields,
             "warnings": ["Skill mentions may be negated or aspirational; review every candidate.",
                          "Experience and education are source lines; dates, degrees and years are not inferred."]}

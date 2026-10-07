@@ -10,6 +10,17 @@ from scripts.create_sample_resume import sample_pdf
 
 
 class DraftTests(unittest.TestCase):
+    def test_employment_in_summary_preserves_wrapped_evidence(self):
+        text = "Professional Summary\nBuilds Python apps. Current Data Administrator at ExampleCo and former paid\nPython Developer Intern at SampleCo.\nKey Projects\nBuilt an app.\n"
+        profile = draft_profile([{"page": 1, "text": text}])
+        self.assertEqual(len(profile["experience"]), 1)
+        item = profile["experience"][0]
+        self.assertFalse(item["confirmed"])
+        self.assertNotIn("\n", item["value"])
+        proof = item["evidence"]
+        self.assertEqual(text[proof["start"]:proof["end"]], proof["quote"])
+        self.assertIn("paid\nPython Developer", proof["quote"])
+
     def test_combined_education_heading_and_project_boundary(self):
         text = "Professional Summary\nPython developer\nEducation & Certifications\nBS Computing\nKey Projects\nBuilt a Django app\n"
         profile = draft_profile([{"page": 1, "text": text}])
