@@ -2,9 +2,9 @@
 
 An incremental Python project that will retrieve jobs for an editable résumé profile, compare keyword and semantic ranking, and explain strengths and gaps using source evidence. Match scores are ranking signals, never probabilities of getting hired.
 
-## Current status: Steps 1, 2 and 3 implemented
+## Current status: Steps 1–5 implemented; packaging and release work remain
 
-The working sample provides dependency-free TF-IDF cosine retrieval, 12 fictional job listings, three fictional profiles, a relevance rubric, complete provisional labels for 36 pairs, reproducible metrics, and automated checks. Step 2 adds local PDF import, editable profiles, source evidence, confirmed-profile search and deletion through the CLI. Step 3 adds local sentence-transformer retrieval and a shared comparison benchmark. Human review of evaluation labels remains pending. Browser uploads, cross-encoder reranking, APIs and the UI are future steps.
+The working sample provides TF-IDF retrieval, local PDF profiles, semantic retrieval, cross-encoder reranking, explicit requirement constraints and a FastAPI browser interface with evidence and learning priorities. The 12 fictional jobs and three fictional profiles form 36 provisional evaluation pairs; human label review remains pending. Containerization, ingestion/database integration and release work remain.
 
 GitHub repository: [Raimal-Raja/jobmatch-ml-platform](https://github.com/Raimal-Raja/jobmatch-ml-platform).
 
@@ -132,8 +132,8 @@ Each step ends with a working sample, relevant verification and a README update 
 | 1 | Clean fictional data, TF-IDF retrieval and evaluation harness | Search runs; metrics saved; tests pass | Implemented; human label review pending |
 | 2 | PDF parsing and editable structured profiles | Extracted text has source references; user corrections persist; deletion works | Implemented (CLI) |
 | 3 | Sentence-transformer retrieval | Same evaluation compares TF-IDF and embeddings; model/version recorded | Implemented |
-| 4 | Cross-encoder reranking and constraint handling | Compare all three methods; record latency and costs; test required/preferred distinctions | Next |
-| 5 | FastAPI and Streamlit evidence/skill-gap interface | Quotes trace to sources; gaps and learning priorities do not invent qualifications | Planned |
+| 4 | Cross-encoder reranking and constraint handling | Compare all three methods; record latency and costs; test required/preferred distinctions | Implemented |
+| 5 | FastAPI and browser evidence/skill-gap interface | Quotes trace to sources; gaps and learning priorities do not invent qualifications | Implemented; browser CI verification pending |
 | 6 | PostgreSQL/pgvector, ingestion, Docker and CI | Permitted provenance, validation, duplicate controls, privacy and integration checks | Planned |
 | 7 | Expanded human-reviewed evaluation, MLflow and demo deployment | Frozen evaluation split, reproducible comparison, architecture diagram and two-minute demo | Planned |
 
@@ -155,3 +155,40 @@ IDF is fitted only on job documents. Evaluation profiles do not fit the index. N
 Keyword overlap misses synonyms and can reward incidental terms. The baseline does not understand negation or required versus preferred skills and does not enforce experience, location or remote-work constraints. It can rank senior jobs despite an experience gap. Near-duplicate detection is not implemented yet. No learning plans or explanations are generated in Step 1.
 
 Publish résumé achievement numbers only after larger human-reviewed experiments. Report improvements against this baseline on the same frozen evaluation set, alongside deployed latency and measured infrastructure cost.
+
+## Step 4: cross-encoder and explicit constraints
+
+```sh
+python -m jobmatch search "Python Django backend" --approach reranked
+python -m jobmatch search "Python Django backend" --context data/sample_context.json
+python -m jobmatch compare --output reports/three-way-comparison.json
+```
+
+Semantic retrieval shortlists up to 20 jobs; a fixed `cross-encoder/ms-marco-MiniLM-L6-v2` revision reranks query–description pairs using raw logits. Scores are not hiring probabilities. The initial corpus has only 12 jobs, so all are shortlisted; larger-corpus shortlist recall remains unmeasured.
+
+The [successful Step 4 run](https://github.com/Raimal-Raja/jobmatch-ml-platform/actions/runs/37591312648) passed all 18 tests. All timings below come from the same Linux run, with 300 queries per method:
+
+| Approach | NDCG@10 | Precision@5 | p95 retrieval |
+| --- | ---: | ---: | ---: |
+| TF-IDF | 0.9867 | 0.4667 | 0.0520 ms |
+| Embeddings | 0.9929 | 0.4667 | 18.5767 ms |
+| Retrieval + cross-encoder | 0.9909 | 0.4667 | 248.8277 ms |
+
+Reranking underperformed embeddings on this provisional fixture and was slower. Paid API cost remains US$0; infrastructure cost is unmeasured. [Full report and provenance](reports/three-way-comparison.json).
+
+Context JSON accepts confirmed skill names, explicit relevant years, allowed locations and work modes. Explicit conflicts are demoted, then required-skill coverage is considered, followed by model score. This rule layer is separate from the three-model benchmark and has no measured accuracy improvement claim. Unknown preferences remain unknown. Location comparison is exact; country-wide remote jobs still need the relevant allowed location. Requirement extraction supports labeled `Required:`/`Preferred:` sections and a limited vocabulary. Complex negation, alternatives, headings and role-specific experience still need manual review.
+
+## Step 5: working local interface
+
+```sh
+python -m pip install -e ".[resume,web]"
+python -m uvicorn jobmatch.api:app --host 127.0.0.1 --port 8000 --no-access-log
+```
+
+Open [the local demo](http://127.0.0.1:8000). Download the fictional sample, upload it, correct the skills/experience/education fields and confirm the profile. Then search, choose an approach and enter optional constraints. Each match shows required versus preferred requirements, quotations, supported strengths, not-evidenced requirements and up to three learning priorities. New user-entered qualifications have no fabricated PDF quotations.
+
+The UI uses HTML/CSS/JavaScript served by FastAPI rather than Streamlit, keeping the editable profile and evidence flow in one application. Keyword mode needs no model packages; semantic/reranked modes require `.[semantic]`. Routes include `/health`, `/profiles`, `/profiles/{id}`, `/search` and `/openapi.json`. The API rejects invalid payloads, foreign origins and unrecognized hosts, and uses `Cache-Control: no-store`. The UI renders text without interpreting résumé/job content as HTML.
+
+Deletion removes stored PDF/profile files and clears the browser view. The tab remembers only the profile ID in session storage to recover after refresh. Closing the tab does not delete server files; use deletion or the CLI. This single-user local demo has no authentication, encrypted storage or resource-isolated PDF workers. Bind to loopback and do not expose personal résumé uploads publicly.
+
+Local verification passed 16 tests, including API upload → confirm → evidence/search → delete; four model tests skip locally. The desktop computer-use helper failed to initialize twice; browser CI verification is pending.

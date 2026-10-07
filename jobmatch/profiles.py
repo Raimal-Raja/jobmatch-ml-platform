@@ -89,6 +89,9 @@ class ProfileStore:
         if path.stat().st_size > 10 * 1024 * 1024:
             raise ValueError("PDF exceeds 10 MiB limit")
         content = path.read_bytes()
+        return self.create_bytes(content)
+
+    def create_bytes(self, content):
         profile = draft_profile(extract_pages(content))
         profile["id"] = uuid.uuid4().hex
         directory = self._directory(profile["id"])

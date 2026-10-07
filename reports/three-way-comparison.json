@@ -1,0 +1,260 @@
+{
+  "fixture_sha256": "03dfb5112c5c99988726194b4f49e113dbd093d3b0361a9b761c1116d15c101f",
+  "results": [
+    {
+      "approach": "tfidf",
+      "label_status": "provisional_not_human_reviewed",
+      "jobs": 12,
+      "profiles": 3,
+      "pairs": 36,
+      "ndcg_at_10": 0.9867278017622186,
+      "precision_at_5": 0.4666666666666666,
+      "p95_response_ms": 0.051966,
+      "latency_scope": "warm in-process retrieval, excludes indexing, file I/O, network and UI",
+      "latency_samples": 300,
+      "paid_api_cost_usd_per_search": 0,
+      "infrastructure_cost_usd_per_search": null,
+      "per_profile": [
+        {
+          "profile_id": "p01",
+          "ndcg_at_10": 0.9727489140069893,
+          "precision_at_5": 0.4,
+          "ranking": [
+            "j01",
+            "j02",
+            "j12",
+            "j03",
+            "j10",
+            "j09",
+            "j07",
+            "j04",
+            "j11",
+            "j06"
+          ]
+        },
+        {
+          "profile_id": "p02",
+          "ndcg_at_10": 0.9874344912796669,
+          "precision_at_5": 0.4,
+          "ranking": [
+            "j06",
+            "j05",
+            "j07",
+            "j10",
+            "j02",
+            "j12",
+            "j01",
+            "j03",
+            "j11",
+            "j08"
+          ]
+        },
+        {
+          "profile_id": "p03",
+          "ndcg_at_10": 1,
+          "precision_at_5": 0.6,
+          "ranking": [
+            "j04",
+            "j09",
+            "j10",
+            "j02",
+            "j01",
+            "j12",
+            "j06",
+            "j07",
+            "j03",
+            "j11"
+          ]
+        }
+      ],
+      "setup_seconds": 0.0002770170000019334,
+      "model_metadata": null
+    },
+    {
+      "approach": "semantic",
+      "label_status": "provisional_not_human_reviewed",
+      "jobs": 12,
+      "profiles": 3,
+      "pairs": 36,
+      "ndcg_at_10": 0.9928530762161477,
+      "precision_at_5": 0.4666666666666666,
+      "p95_response_ms": 18.576651,
+      "latency_scope": "warm in-process retrieval, excludes indexing, file I/O, network and UI",
+      "latency_samples": 300,
+      "paid_api_cost_usd_per_search": 0,
+      "infrastructure_cost_usd_per_search": null,
+      "per_profile": [
+        {
+          "profile_id": "p01",
+          "ndcg_at_10": 0.9785592286484432,
+          "precision_at_5": 0.4,
+          "ranking": [
+            "j01",
+            "j02",
+            "j03",
+            "j12",
+            "j11",
+            "j07",
+            "j06",
+            "j10",
+            "j09",
+            "j04"
+          ]
+        },
+        {
+          "profile_id": "p02",
+          "ndcg_at_10": 1,
+          "precision_at_5": 0.4,
+          "ranking": [
+            "j06",
+            "j05",
+            "j07",
+            "j02",
+            "j08",
+            "j01",
+            "j03",
+            "j11",
+            "j12",
+            "j10"
+          ]
+        },
+        {
+          "profile_id": "p03",
+          "ndcg_at_10": 1,
+          "precision_at_5": 0.6,
+          "ranking": [
+            "j09",
+            "j10",
+            "j04",
+            "j02",
+            "j01",
+            "j11",
+            "j12",
+            "j03",
+            "j08",
+            "j06"
+          ]
+        }
+      ],
+      "setup_seconds": 6.578542478000003,
+      "model_metadata": {
+        "model": "sentence-transformers/all-MiniLM-L6-v2",
+        "revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+        "device": "cpu",
+        "torch_threads": 1,
+        "embedding_dimension": 384,
+        "max_sequence_length": 256,
+        "sentence_transformers_version": "5.1.2",
+        "torch_version": "2.8.0+cpu",
+        "numpy_version": "2.5.3",
+        "query_embedding_cache": false
+      }
+    },
+    {
+      "approach": "reranked",
+      "label_status": "provisional_not_human_reviewed",
+      "jobs": 12,
+      "profiles": 3,
+      "pairs": 36,
+      "ndcg_at_10": 0.9908769001517076,
+      "precision_at_5": 0.4666666666666666,
+      "p95_response_ms": 248.827722,
+      "latency_scope": "warm in-process retrieval, excludes indexing, file I/O, network and UI",
+      "latency_samples": 300,
+      "paid_api_cost_usd_per_search": 0,
+      "infrastructure_cost_usd_per_search": null,
+      "per_profile": [
+        {
+          "profile_id": "p01",
+          "ndcg_at_10": 0.9743780973966056,
+          "precision_at_5": 0.4,
+          "ranking": [
+            "j01",
+            "j02",
+            "j03",
+            "j12",
+            "j07",
+            "j11",
+            "j04",
+            "j09",
+            "j10",
+            "j06"
+          ]
+        },
+        {
+          "profile_id": "p02",
+          "ndcg_at_10": 0.9982526030585172,
+          "precision_at_5": 0.4,
+          "ranking": [
+            "j06",
+            "j05",
+            "j07",
+            "j02",
+            "j01",
+            "j03",
+            "j08",
+            "j11",
+            "j10",
+            "j12"
+          ]
+        },
+        {
+          "profile_id": "p03",
+          "ndcg_at_10": 1,
+          "precision_at_5": 0.6,
+          "ranking": [
+            "j09",
+            "j04",
+            "j10",
+            "j02",
+            "j12",
+            "j01",
+            "j03",
+            "j11",
+            "j07",
+            "j06"
+          ]
+        }
+      ],
+      "setup_seconds": 1.1723461289999904,
+      "model_metadata": {
+        "retrieval": {
+          "model": "sentence-transformers/all-MiniLM-L6-v2",
+          "revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+          "device": "cpu",
+          "torch_threads": 1,
+          "embedding_dimension": 384,
+          "max_sequence_length": 256,
+          "sentence_transformers_version": "5.1.2",
+          "torch_version": "2.8.0+cpu",
+          "numpy_version": "2.5.3",
+          "query_embedding_cache": false
+        },
+        "reranker_model": "cross-encoder/ms-marco-MiniLM-L6-v2",
+        "reranker_revision": "233902d25c440f23af6f7d6e94d2946bac0bee0a",
+        "candidate_pool": 20,
+        "max_pair_tokens": 512,
+        "score_type": "raw logit; not hiring probability"
+      }
+    }
+  ],
+  "reranked_minus_tfidf": {
+    "ndcg_at_10": 0.004149098389488959,
+    "precision_at_5": 0,
+    "p95_response_ms": 248.775756
+  },
+  "semantic_minus_tfidf": {
+    "ndcg_at_10": 0.006125274453929075,
+    "precision_at_5": 0,
+    "p95_response_ms": 18.524684999999998
+  },
+  "environment": {
+    "python": "3.12.15",
+    "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39"
+  },
+  "provenance": {
+    "workflow_run_url": "https://github.com/Raimal-Raja/jobmatch-ml-platform/actions/runs/37591312648",
+    "commit_sha": "c13898d858e90c2202fce91ad1acff67474e56d8",
+    "recovered_from": "GitHub Actions stdout"
+  }
+}
