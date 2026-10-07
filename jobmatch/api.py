@@ -1,5 +1,6 @@
 """Single-user local demonstration API and evidence-based interface."""
 import threading
+import os
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Request
@@ -33,7 +34,7 @@ def create_app(store=None, jobs=None):
     app = FastAPI(title="JobMatch", version="0.5.0", docs_url=None, redoc_url=None)
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1", "testserver"])
     store = store or ProfileStore()
-    jobs = jobs or load_jobs()
+    jobs = jobs or load_jobs(os.environ.get("JOBMATCH_JOB_DATA", ROOT / "data/jobs.json"))
     cache = {}
     lock = threading.RLock()
 

@@ -1,0 +1,32 @@
+services:
+  app:
+    build:
+      context: .
+      args:
+        ENABLE_SEMANTIC: ${ENABLE_SEMANTIC:-false}
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - profiles:/app/private_data
+      - model_cache:/app/.model_cache
+    restart: unless-stopped
+  postgres:
+    image: pgvector/pgvector:pg16
+    profiles: [postgres]
+    environment:
+      POSTGRES_USER: jobmatch
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local_demo_only}
+      POSTGRES_DB: jobmatch
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - database:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jobmatch -d jobmatch"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+volumes:
+  profiles:
+  model_cache:
+  database:

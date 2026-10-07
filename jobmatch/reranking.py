@@ -1,6 +1,6 @@
 """Shortlist retrieval followed by a fixed cross-encoder; raw scores are signals."""
 from .retrieval import ROOT
-from .semantic import SemanticRetriever
+from .semantic import make_retriever
 
 MODEL = "cross-encoder/ms-marco-MiniLM-L6-v2"
 REVISION = "233902d25c440f23af6f7d6e94d2946bac0bee0a"
@@ -12,7 +12,7 @@ class RerankedRetriever:
             raise ValueError("Candidate pool must be an integer >= 10")
         from sentence_transformers import CrossEncoder
         from torch import nn
-        self.retriever = SemanticRetriever(jobs, offline=offline)
+        self.retriever = make_retriever(jobs, "semantic", offline)
         self.candidate_pool = candidate_pool
         self.model = CrossEncoder(MODEL, revision=REVISION, device="cpu", max_length=512,
                                   cache_folder=str(ROOT / ".model_cache"), local_files_only=offline,

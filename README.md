@@ -2,9 +2,9 @@
 
 An incremental Python project that will retrieve jobs for an editable résumé profile, compare keyword and semantic ranking, and explain strengths and gaps using source evidence. Match scores are ranking signals, never probabilities of getting hired.
 
-## Current status: Steps 1–5 implemented; packaging and release work remain
+## Current status: Steps 1–6 implemented; release validation remains
 
-The working sample provides TF-IDF retrieval, local PDF profiles, semantic retrieval, cross-encoder reranking, explicit requirement constraints and a FastAPI browser interface with evidence and learning priorities. The 12 fictional jobs and three fictional profiles form 36 provisional evaluation pairs; human label review remains pending. Containerization, ingestion/database integration and release work remain.
+The working sample provides TF-IDF retrieval, local PDF profiles, semantic retrieval, cross-encoder reranking, explicit constraints, a FastAPI evidence interface, permitted manual ingestion, optional PostgreSQL/pgvector storage, Docker packaging and CI. The 12 fictional jobs and three fictional profiles form 36 provisional evaluation pairs; human label review and public-release validation remain.
 
 GitHub repository: [Raimal-Raja/jobmatch-ml-platform](https://github.com/Raimal-Raja/jobmatch-ml-platform).
 
@@ -133,8 +133,8 @@ Each step ends with a working sample, relevant verification and a README update 
 | 2 | PDF parsing and editable structured profiles | Extracted text has source references; user corrections persist; deletion works | Implemented (CLI) |
 | 3 | Sentence-transformer retrieval | Same evaluation compares TF-IDF and embeddings; model/version recorded | Implemented |
 | 4 | Cross-encoder reranking and constraint handling | Compare all three methods; record latency and costs; test required/preferred distinctions | Implemented |
-| 5 | FastAPI and browser evidence/skill-gap interface | Quotes trace to sources; gaps and learning priorities do not invent qualifications | Implemented; browser CI verification pending |
-| 6 | PostgreSQL/pgvector, ingestion, Docker and CI | Permitted provenance, validation, duplicate controls, privacy and integration checks | Planned |
+| 5 | FastAPI and browser evidence/skill-gap interface | Quotes trace to sources; gaps and learning priorities do not invent qualifications | Verified by browser CI |
+| 6 | PostgreSQL/pgvector, ingestion, Docker and CI | Permitted provenance, validation, duplicate controls, privacy and integration checks | Implemented; Docker/database CI pending |
 | 7 | Expanded human-reviewed evaluation, MLflow and demo deployment | Frozen evaluation split, reproducible comparison, architecture diagram and two-minute demo | Planned |
 
 The six-week proposal guides scheduling; these seven implementation checkpoints keep individual changes reviewable. Human review should start now and expand throughout the build. Future model selection must use development data separate from the final evaluation set.
@@ -191,4 +191,33 @@ The UI uses HTML/CSS/JavaScript served by FastAPI rather than Streamlit, keeping
 
 Deletion removes stored PDF/profile files and clears the browser view. The tab remembers only the profile ID in session storage to recover after refresh. Closing the tab does not delete server files; use deletion or the CLI. This single-user local demo has no authentication, encrypted storage or resource-isolated PDF workers. Bind to loopback and do not expose personal résumé uploads publicly.
 
-Local verification passed 16 tests, including API upload → confirm → evidence/search → delete; four model tests skip locally. The desktop computer-use helper failed to initialize twice; browser CI verification is pending.
+Local verification passed 16 tests, including API upload → confirm → evidence/search → delete; four model tests skip locally. The [browser CI run](https://github.com/Raimal-Raja/jobmatch-ml-platform/actions/runs/37596398785) passed upload, correction, evidence, refresh recovery and deletion checks, with no JavaScript errors. Its `interface-proof` artifact contains a full-page screenshot. The desktop helper was unavailable; visual automation ran in CI.
+
+## Step 6: ingestion, optional database and packaging
+
+Import only listings you are permitted to use. The manual JSON format requires `provenance.kind`, `source` and `permission`; the software records your declaration rather than independently establishing a legal permission. No scraping is implemented.
+
+```sh
+python -m jobmatch ingest data/sample_listing_import.json
+```
+
+This writes a separate catalog under ignored `private_data/`, leaving the evaluation corpus unchanged. Set `JOBMATCH_JOB_DATA` to that catalog's absolute path before starting the API, and restart after changes. Imports reject invalid work modes, duplicate IDs, normalized exact duplicate listings and lexical near duplicates (token-set Jaccard >= 0.90). This is a limited duplicate heuristic, not a semantic duplicate detector.
+
+```sh
+docker compose up --build -d
+```
+
+The default image runs keyword matching and PDF profiles without model downloads. It runs as a non-root user, persists profiles in a named volume and publishes only on loopback. Open `http://127.0.0.1:8000`. For optional models set `ENABLE_SEMANTIC=true` before building; the Docker build installs the CPU wheel. Model downloads occur on first semantic use and persist in their own volume. `docker compose down` retains data volumes; profile deletion operates within the app volume. Do not remove volumes unless you intend to erase their contents. Docker is unavailable in this desktop environment; build/runtime checks run in GitHub Actions.
+
+The optional database service is started separately:
+
+```sh
+docker compose --profile postgres up -d postgres
+python -m pip install -e ".[database,semantic]"
+```
+
+Set `DATABASE_URL` to the local demo database (`postgresql://jobmatch:local_demo_only@localhost:5432/jobmatch` with the default local-only configuration), then run `python -m jobmatch index-postgres`. Set `JOBMATCH_PGVECTOR=1` before running semantic search or the API to use persisted cosine search. For an imported catalog use `index-postgres --jobs private_data/jobs.json` and the same catalog when starting the API. All SQL values use bound parameters. Catalog fingerprints and the model revision prevent stale/mismatched embeddings being returned. The local default password is a demonstration value, not a production credential.
+
+The pgvector implementation performs exact search. It still constructs an in-memory encoder/index during startup; removing that redundant startup encoding and adding approximate indexes are future scale improvements. Old versioned catalogs remain stored; there is no database retention policy yet. Résumé profiles stay in the local file store rather than PostgreSQL. See the [pgvector reference](https://github.com/pgvector/pgvector) for its cosine operator and exact/approximate search behavior.
+
+Application CI verifies keyword/PDF/API tests, a Chromium workflow, a Docker health/page smoke check and an ephemeral PostgreSQL vector ordering/stale-catalog check. The separate retrieval workflow downloads both real models and benchmarks all three methods. Database tests and model tests skip unless explicitly enabled, so a dependency-free local test run is not equivalent to full CI.

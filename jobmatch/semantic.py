@@ -49,6 +49,10 @@ def make_retriever(jobs, approach="tfidf", offline=False):
         from .reranking import RerankedRetriever
         return RerankedRetriever(jobs, offline=offline)
     if approach == "semantic":
+        import os
+        if os.environ.get("JOBMATCH_PGVECTOR") == "1":
+            from .postgres import PgvectorRetriever
+            return PgvectorRetriever(jobs, offline=offline)
         return SemanticRetriever(jobs, offline=offline)
     if approach == "tfidf":
         from .retrieval import TfidfRetriever

@@ -20,6 +20,12 @@ def main():
     search.add_argument("--offline", action="store_true", help="Use cached model files only")
     benchmark = sub.add_parser("evaluate")
     benchmark.add_argument("--output", type=Path, default=ROOT / "reports/baseline.json")
+    ingestion = sub.add_parser("ingest", help="Import explicitly permitted manual job JSON")
+    ingestion.add_argument("file", type=Path)
+    ingestion.add_argument("--output", type=Path, default=ROOT / "private_data/jobs.json")
+    pg_index = sub.add_parser("index-postgres", help="Index a catalog with the fixed semantic model")
+    pg_index.add_argument("--jobs", type=Path, default=ROOT / "data/jobs.json")
+    pg_index.add_argument("--offline", action="store_true")
     comparison = sub.add_parser("compare", help="Benchmark TF-IDF and semantic retrieval on identical labels")
     comparison.add_argument("--output", type=Path, default=ROOT / "reports/comparison.json")
     comparison.add_argument("--repeats", type=int, default=100)
@@ -33,6 +39,23 @@ def main():
     profile.add_argument("--approach", choices=("tfidf", "semantic", "reranked"), default="tfidf")
     profile.add_argument("--offline", action="store_true")
     args = parser.parse_args()
+    if args.command == "index-postgres":
+        from .postgres import PgvectorStore
+        from .semantic import SemanticRetriever
+        try:
+            catalog = load_jobs(args.jobs)
+            encoder = SemanticRetriever(catalog, offline=args.offline)
+            print(json.dumps(PgvectorStore().upsert(catalog, encoder.vectors), indent=2))
+        except (ValueError, OSError) as exc:
+            parser.error(str(exc))
+        return
+    if args.command == "ingest":
+        from .ingestion import ingest
+        try:
+            print(json.dumps(ingest(args.file, args.output), indent=2))
+        except (ValueError, OSError) as exc:
+            parser.error(str(exc))
+        return
     store = ProfileStore()
     if args.command in ("resume", "profile"):
         try:

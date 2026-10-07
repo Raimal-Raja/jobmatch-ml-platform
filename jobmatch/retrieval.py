@@ -15,14 +15,24 @@ def tokenize(text):
 
 def load_jobs(path=ROOT / "data/jobs.json"):
     jobs = json.loads(Path(path).read_text(encoding="utf-8"))
+    return validate_jobs(jobs)
+
+
+def validate_jobs(jobs):
     if not isinstance(jobs, list) or not jobs:
         raise ValueError("Job dataset must be a nonempty list")
     ids, fingerprints = set(), set()
     for job in jobs:
+        if not isinstance(job, dict):
+            raise ValueError("Each listing must be an object")
         for field in ("id", "title", "description", "location", "work_mode"):
             if not isinstance(job.get(field), str) or not job[field].strip():
                 raise ValueError(f"Job requires a nonempty {field}")
         fingerprint = tuple(tokenize(job["title"] + " " + job["description"]))
+        if job["work_mode"] not in ("remote", "hybrid", "onsite"):
+            raise ValueError("Unknown job work mode")
+        if len(job["description"]) > 30000 or len(job["title"]) > 300 or len(job["id"]) > 100:
+            raise ValueError("Job field exceeds supported length")
         if job["id"] in ids or fingerprint in fingerprints:
             raise ValueError("Duplicate job ID or normalized listing")
         ids.add(job["id"])
