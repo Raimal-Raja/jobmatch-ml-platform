@@ -44,7 +44,7 @@ try:
         assert "Python" in page.locator("#skills").input_value()
         moment(28, "Review and correct skills, experience and education. Source page text remains available.")
         page.locator("#save").click()
-        page.get_by_role("status").filter(has_text="Profile confirmed").wait_for()
+        page.locator("#status").filter(has_text="Profile confirmed").wait_for()
         moment(42, "Confirm the profile. Only confirmed fields contribute to profile search.")
         page.locator("#years").fill("2")
         page.locator("#locations").fill("Karachi, Pakistan")
@@ -62,7 +62,7 @@ try:
         page.locator("#editor").wait_for(state="visible")
         moment(108, "Refresh recovers the saved profile. Delete removes the stored PDF and profile; the original file is preserved.")
         page.locator("#delete").click()
-        page.get_by_role("status").filter(has_text="profile deleted").wait_for()
+        page.locator("#status").filter(has_text="profile deleted").wait_for()
         assert not page.locator("#editor").is_visible()
         assert not errors, errors
         moment(116, "Three models are benchmarked honestly: reranking did not beat embeddings on the tiny provisional fixture. Human label review and public release remain pending.")
