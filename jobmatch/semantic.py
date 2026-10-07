@@ -45,6 +45,9 @@ class SemanticRetriever:
 
 
 def make_retriever(jobs, approach="tfidf", offline=False):
+    if approach == "reranked":
+        from .reranking import RerankedRetriever
+        return RerankedRetriever(jobs, offline=offline)
     if approach == "semantic":
         return SemanticRetriever(jobs, offline=offline)
     if approach == "tfidf":

@@ -6,6 +6,7 @@ from .retrieval import ROOT, TfidfRetriever, load_jobs
 from .evaluation import evaluate, compare
 from .semantic import make_retriever
 from .profiles import ProfileStore
+from .constraints import apply_constraints
 
 
 def main():
@@ -14,7 +15,8 @@ def main():
     search = sub.add_parser("search")
     search.add_argument("query")
     search.add_argument("--limit", type=int, default=5)
-    search.add_argument("--approach", choices=("tfidf", "semantic"), default="tfidf")
+    search.add_argument("--approach", choices=("tfidf", "semantic", "reranked"), default="tfidf")
+    search.add_argument("--context", type=Path, help="JSON with confirmed skills and explicit preferences")
     search.add_argument("--offline", action="store_true", help="Use cached model files only")
     benchmark = sub.add_parser("evaluate")
     benchmark.add_argument("--output", type=Path, default=ROOT / "reports/baseline.json")
@@ -28,7 +30,7 @@ def main():
     profile.add_argument("action", choices=("show", "update", "delete", "search"))
     profile.add_argument("id")
     profile.add_argument("--corrections", type=Path)
-    profile.add_argument("--approach", choices=("tfidf", "semantic"), default="tfidf")
+    profile.add_argument("--approach", choices=("tfidf", "semantic", "reranked"), default="tfidf")
     profile.add_argument("--offline", action="store_true")
     args = parser.parse_args()
     store = ProfileStore()
@@ -55,7 +57,11 @@ def main():
     jobs = load_jobs()
     if args.command == "search":
         try:
-            print(json.dumps(make_retriever(jobs, args.approach, args.offline).search(args.query, args.limit), indent=2))
+            retriever = make_retriever(jobs, args.approach, args.offline)
+            results = retriever.search(args.query, min(len(jobs), 20) if args.context else args.limit)
+            if args.context:
+                results = apply_constraints(results, json.loads(args.context.read_text(encoding="utf-8")))[:args.limit]
+            print(json.dumps(results, indent=2))
         except (ValueError, OSError) as exc:
             parser.error(str(exc))
     else:

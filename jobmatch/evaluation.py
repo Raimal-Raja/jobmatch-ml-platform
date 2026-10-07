@@ -54,7 +54,7 @@ def compare(jobs, profiles, judgments, repeats=100, offline=False):
     import json
     from .semantic import make_retriever
     reports = []
-    for approach in ("tfidf", "semantic"):
+    for approach in ("tfidf", "semantic", "reranked"):
         start = time.perf_counter()
         retriever = make_retriever(jobs, approach, offline)
         setup = time.perf_counter() - start
@@ -65,5 +65,7 @@ def compare(jobs, profiles, judgments, repeats=100, offline=False):
     fixture = {"jobs": jobs, "profiles": profiles, "judgments": judgments}
     fingerprint = hashlib.sha256(json.dumps(fixture, sort_keys=True).encode()).hexdigest()
     return {"fixture_sha256": fingerprint, "results": reports,
+            "reranked_minus_tfidf": {metric: reports[2][metric] - reports[0][metric]
+                                      for metric in ("ndcg_at_10", "precision_at_5", "p95_response_ms")},
             "semantic_minus_tfidf": {metric: reports[1][metric] - reports[0][metric]
                                       for metric in ("ndcg_at_10", "precision_at_5", "p95_response_ms")}}

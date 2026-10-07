@@ -49,3 +49,16 @@ class SemanticIntegrationTests(unittest.TestCase):
         second = self.retriever.search("data analysis statistics SQL")
         self.assertEqual([r["job"]["id"] for r in first], [r["job"]["id"] for r in second])
         self.assertTrue((before == self.retriever.vectors).all())
+
+
+@unittest.skipUnless(os.environ.get("JOBMATCH_RUN_MODEL_TESTS") == "1", "Enable downloaded-model integration tests")
+class RerankerIntegrationTests(unittest.TestCase):
+    def test_real_reranker_preserves_shortlist_and_returns_finite_scores(self):
+        import math
+        retriever = make_retriever(load_jobs(), "reranked", offline=True)
+        results = retriever.search("Java Spring backend developer", 5)
+        self.assertEqual(len(results), 5)
+        self.assertTrue(all(math.isfinite(row["score"]) for row in results))
+        self.assertTrue(all("retrieval_score" in row for row in results))
+        with self.assertRaises(ValueError):
+            retriever.search("Java", 21)
