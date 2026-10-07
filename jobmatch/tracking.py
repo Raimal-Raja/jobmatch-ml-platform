@@ -9,7 +9,7 @@ def log_comparison(report, output, tracking_directory):
         raise ValueError('Install tracking support with pip install -e ".[tracking]"') from exc
     directory = Path(tracking_directory).resolve()
     directory.mkdir(parents=True, exist_ok=True)
-    mlflow.set_tracking_uri(f"sqlite:///{directory / 'experiments.db'}")
+    mlflow.set_tracking_uri(f"sqlite:///{(directory / 'experiments.db').as_posix()}")
     mlflow.set_experiment("jobmatch-retrieval")
     with mlflow.start_run():
         mlflow.log_param("fixture_sha256", report["fixture_sha256"])

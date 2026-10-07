@@ -47,6 +47,8 @@ def main():
     profile.add_argument("--approach", choices=("tfidf", "semantic", "reranked"), default="tfidf")
     profile.add_argument("--offline", action="store_true")
     args = parser.parse_args()
+    if args.command == "search" and args.limit < 1:
+        parser.error("--limit must be positive")
     if args.command in ("review-export", "review-apply"):
         from .review import export_review, apply_review
         fixture = json.loads((ROOT / "data/evaluation.json").read_text(encoding="utf-8"))
