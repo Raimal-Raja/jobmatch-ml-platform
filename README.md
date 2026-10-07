@@ -2,7 +2,7 @@
 
 An incremental Python project that will retrieve jobs for an editable résumé profile, compare keyword and semantic ranking, and explain strengths and gaps using source evidence. Match scores are ranking signals, never probabilities of getting hired.
 
-## Current status: Steps 1–6 implemented; release validation remains
+## Current status: Steps 1–7 implemented; human evaluation and public deployment remain
 
 The working sample provides TF-IDF retrieval, local PDF profiles, semantic retrieval, cross-encoder reranking, explicit constraints, a FastAPI evidence interface, permitted manual ingestion, optional PostgreSQL/pgvector storage, Docker packaging and CI. The 12 fictional jobs and three fictional profiles form 36 provisional evaluation pairs; human label review and public-release validation remain.
 
@@ -224,7 +224,7 @@ Application CI verifies keyword/PDF/API tests, a Chromium workflow, a Docker hea
 
 ## Step 7: release materials and honest completion status
 
-The [architecture diagram](docs/architecture.md), [two-minute demo instructions](docs/demo.md), failure cases and [36-pair human review worksheet](data/review_worksheet.csv) are prepared. Application CI records a captioned browser demo and screenshot as its `interface-proof` artifact. A blank worksheet cannot be applied as reviewed evaluation; grade, reviewer, rationale and exact evidence are required for every pair. Use the [review commands](docs/evaluation.md) to produce a reviewed fixture and benchmark it separately.
+The [architecture diagram](docs/architecture.md), [two-minute demo instructions](docs/demo.md), failure cases and [36-pair human review worksheet](data/review_worksheet.csv) are prepared. Watch the [captioned two-minute demo](reports/two-minute-demo.webm) or view the [interface screenshot](reports/ui-demo.png), recorded with fictional data by Application CI. These are also available in its `interface-proof` artifact. A blank worksheet cannot be applied as reviewed evaluation; grade, reviewer, rationale and exact evidence are required for every pair. Use the [review commands](docs/evaluation.md) to produce a reviewed fixture and benchmark it separately.
 
 Optional local experiment tracking:
 
@@ -234,5 +234,7 @@ python -m jobmatch compare --output reports/experiment.json --mlflow-dir private
 ```
 
 MLflow stores metrics, fixture fingerprint, label status and the JSON report in a local experiment database/artifact store. Tracking is optional and needs no paid credentials. CI verifies logging while running the real-model benchmark.
+
+Release verification: 21 local tests passed, with five model/database tests skipped locally. The [Application checks](https://github.com/Raimal-Raja/jobmatch-ml-platform/actions/runs/37599353568) passed browser upload/correction/search/evidence/refresh/deletion, Docker startup and PostgreSQL checks. The [Retrieval benchmark](https://github.com/Raimal-Raja/jobmatch-ml-platform/actions/runs/37599353582) passed real-model verification, three-method evaluation and SQLite MLflow logging. These runs verified implementation commit `2db59b3`; the subsequent release update adds documentation and recorded media.
 
 The functional local demo and engineering release materials are implemented. **The original full release is not yet complete:** an expanded human-reviewed evaluation, production upload isolation/authentication, a configured public hosting target and deployed end-to-end latency/cost measurements remain. The current corpus remains 12 fictional jobs and three profiles. Docker/loopback deployment is the supported demo mode; no public deployment or validated real-world accuracy is claimed. Résumé achievement numbers must keep these qualifications.
