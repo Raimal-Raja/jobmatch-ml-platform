@@ -46,6 +46,14 @@ After confirming the profile, expand the advanced option beneath readiness feedb
 
 Verification adds provider/cache/failure/privacy tests, readiness and export tests, browser download and selected-discovery comparison checks, and a separate CI job rendering a fictional DOCX to PDF/PNG for layout review. Local unit verification: **41 passed, five optional model/database tests skipped**. Browser and rendered-export verification must pass before this increment is considered verified. Expanded human-reviewed evaluation and public deployment remain outstanding.
 
+## Step 13 — Optional Google Jobs and NVIDIA rewrite
+
+Select **Google Jobs** in the job-source menu to discover descriptions through [SerpAPI's Google Jobs API](https://serpapi.com/google-jobs-api). Set `SERPAPI_API_KEY` in the server environment and restart. Without a key, the interface provides a filtered Google search link and a setup message. This key is separate from an LLM key. Candidates include descriptions and application links; indexing may be stale and location/work arrangement require confirmation. No résumé is sent for discovery. This increment does not fetch arbitrary web pages or bypass Indeed access controls.
+
+Optional AI rewriting uses [NVIDIA's chat-completions endpoint](https://docs.api.nvidia.com/nim/reference/nvidia-nemotron-3-ultra-550b-a55b-infer). Set a fresh `NVIDIA_API_KEY` locally and restart. The default model is `nvidia/nemotron-3-ultra-550b-a55b`; `NVIDIA_MODEL` can override it. Never paste secrets in source, GitHub or browser fields. No credentials from the conversation are stored or used. The app requires explicit consent to send original résumé text and confirmed corrections to NVIDIA. It checks exact source quotations for each suggested paragraph, rejects incomplete/invalid responses and hides provider error details. Quotations alone cannot validate all paraphrased claims: manually review every suggestion before export. No automatic retries incur extra requests.
+
+The supplied [Google Docs template](https://docs.google.com/document/d/1tbnWMFkKT0c4Mh_IKhrobi_yK8qtjL6vkCgvXWCIKI0/edit) was inspected: one tab, centered Spectral name/contact opening, experience with project bullets, education and skills. Its sample employers, metrics and qualifications must never become candidate facts. The app links to the native template for exact formatting; its existing Word export remains the documented single-column layout. Automatic native-template filling is not implemented. OpenRouter is not configured in this increment. Local fallback remains available without credentials. Live paid-service verification requires locally configured replacement/search keys; mocked tests do not prove live provider access.
+
 ## Run the sample
 
 Use Python 3.10 or later from the repository root. No paid credentials, model downloads or third-party packages are required. Installation is unnecessary for these commands.

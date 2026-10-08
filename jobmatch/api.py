@@ -57,7 +57,12 @@ class DiscoveryQuery(BaseModel):
     country: str = Field(default="", max_length=200)
     city: str = Field(default="", max_length=200)
     work_mode: Literal["", "remote", "hybrid", "onsite"] = ""
-    provider: Literal["all", "remotive", "arbeitnow", "arbeitnow-uk"] = "all"
+    provider: Literal["all", "remotive", "arbeitnow", "arbeitnow-uk", "google"] = "all"
+
+
+class AIRewrite(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    consent: bool = False
 
 
 class ResumeExport(BaseModel):
@@ -148,8 +153,16 @@ def create_app(store=None, jobs=None, discovery=None):
         return Response(docx_bytes(body.text), media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                         headers={'Content-Disposition': 'attachment; filename="ResumeDraft.docx"'})
 
+    @app.post('/profiles/{profile_id}/ai-rewrite')
+    def ai_rewrite(profile_id: str, body: AIRewrite):
+        from .optional_ai import generate_draft
+        return generate_draft(store.get(profile_id), body.consent)
+
     @app.post('/discover-jobs')
     def discover_jobs(body: DiscoveryQuery):
+        if body.provider == 'google':
+            from .google_jobs import search_google
+            return search_google(body.model_dump())
         return discovery.search(body.model_dump())
 
     @app.put("/profiles/{profile_id}")

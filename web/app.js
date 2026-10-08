@@ -5,12 +5,12 @@ let rewriteReady = false;
 function el(tag, text, className) { const node = document.createElement(tag); node.textContent = text; if (className) node.className = className; return node; }
 async function api(path, options = {}) { const response = await fetch(path, options); const data = await response.json(); if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail)); return data; }
 function jsonOptions(method, body) { return {method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)}; }
-function showProfile(profile) { $('ats-panel').hidden = false; $('ats-status').textContent = 'Checking résumé text readiness…'; loadReadiness(profile.id); $('rewrite-editor').hidden = true; rewriteReady = false; profileReviewed = profile.reviewed; $('profile-fields').open = !profile.reviewed; $('target-results').replaceChildren(); $('target-status').textContent = profile.reviewed ? 'Profile confirmed. Add your target listing and compare.' : 'Review and confirm the profile before comparing a target job.'; $('profile-status').textContent = profile.reviewed ? 'Résumé confirmed. Paste your job description in step 2 below.' : 'PDF extracted. Review the fields below, then click Confirm corrected profile.'; profileId = profile.id; sessionStorage.setItem('jobmatch-profile', profileId); $('editor').hidden = false; for (const field of ['skills','experience','education']) $(field).value = [...new Set(profile[field].map(item => item.value))].join('\n'); $('source').textContent = profile.pages.map(page => `Page ${page.page}\n${page.text}`).join('\n\n'); updateReadiness(); }
+function showProfile(profile) { document.querySelectorAll('.ai-evidence').forEach(node => node.remove()); $('ai-consent').checked = false; $('ats-panel').hidden = false; $('ats-status').textContent = 'Checking résumé text readiness…'; loadReadiness(profile.id); $('rewrite-editor').hidden = true; rewriteReady = false; profileReviewed = profile.reviewed; $('profile-fields').open = !profile.reviewed; $('target-results').replaceChildren(); $('target-status').textContent = profile.reviewed ? 'Profile confirmed. Add your target listing and compare.' : 'Review and confirm the profile before comparing a target job.'; $('profile-status').textContent = profile.reviewed ? 'Résumé confirmed. Paste your job description in step 2 below.' : 'PDF extracted. Review the fields below, then click Confirm corrected profile.'; profileId = profile.id; sessionStorage.setItem('jobmatch-profile', profileId); $('editor').hidden = false; for (const field of ['skills','experience','education']) $(field).value = [...new Set(profile[field].map(item => item.value))].join('\n'); $('source').textContent = profile.pages.map(page => `Page ${page.page}\n${page.text}`).join('\n\n'); updateReadiness(); }
 async function action(button, operation) {
   const label = button.textContent; button.disabled = true; button.textContent = 'Working…';
   try { await operation(); }
   catch (error) {
-    const status = button.id === 'compare-target' ? 'target-status' : button.id === 'discover-jobs' ? 'discovery-status' : ['prepare-rewrite','download-rewrite'].includes(button.id) ? 'rewrite-status' : button.id === 'search' ? 'status' : 'profile-status';
+    const status = button.id === 'compare-target' ? 'target-status' : button.id === 'discover-jobs' ? 'discovery-status' : ['prepare-rewrite','prepare-ai','download-rewrite'].includes(button.id) ? 'rewrite-status' : button.id === 'search' ? 'status' : 'profile-status';
     $(status).textContent = error.message;
   } finally { button.textContent = label; button.disabled = false; updateReadiness(); }
 }
@@ -18,6 +18,7 @@ function updateReadiness() {
   $('pdf').disabled = Boolean(profileId);
   $('upload').disabled = Boolean(profileId);
   $('prepare-rewrite').disabled = !profileReviewed;
+  $('prepare-ai').disabled = !profileReviewed || !$('ai-consent').checked;
   $('download-rewrite').disabled = !profileReviewed || !rewriteReady || !$('rewrite-reviewed').checked;
   $('compare-target').disabled = !profileReviewed;
   $('search').disabled = profileId ? !profileReviewed : !$('query').value.trim();
@@ -139,6 +140,7 @@ async function loadReadiness(id) {
 }
 $('prepare-rewrite').onclick = () => action($('prepare-rewrite'), async () => {
   const draft = await api(`/profiles/${profileId}/rewrite`);
+  document.querySelectorAll('.ai-evidence').forEach(node => node.remove());
   $('rewrite-text').value = draft.text; $('rewrite-reviewed').checked = false;
   $('rewrite-editor').hidden = false; rewriteReady = true;
   $('rewrite-status').textContent = `${draft.notice} ${draft.review_items.join(' ')}`;
@@ -164,7 +166,7 @@ $('discover-jobs').onclick = () => action($('discover-jobs'), async () => {
     work_mode: $('discovery-mode').value, provider: $('discovery-provider').value}));
   $('discovery-status').textContent = data.message;
   $('discovery-results').append(el('p', data.notice, 'note'));
-  const indeed = el('a', 'Open this role/company/location search on Indeed'); indeed.href = data.indeed_url;
+  const indeed = el('a', data.google_url ? 'Open this search on Google' : 'Open this role/company/location search on Indeed'); indeed.href = data.google_url || data.indeed_url;
   indeed.target = '_blank'; indeed.rel = 'noopener noreferrer'; $('discovery-results').append(indeed);
   for (const source of data.sources) {
     const link = el('a', `Source: ${source.name} · ${source.status}`); link.href = source.home; link.target = '_blank'; link.rel = 'noopener noreferrer';
@@ -188,4 +190,18 @@ $('discover-jobs').onclick = () => action($('discover-jobs'), async () => {
     };
     card.append(choose); $('discovery-results').append(card);
   }
+});
+
+$('ai-consent').addEventListener('change', updateReadiness);
+$('prepare-ai').onclick = () => action($('prepare-ai'), async () => {
+  if (!$('ai-consent').checked) throw new Error('Confirm sending your résumé to NVIDIA first.');
+  $('rewrite-status').textContent = 'Preparing AI suggestions… allow up to a minute.';
+  const draft = await api(`/profiles/${profileId}/ai-rewrite`, jsonOptions('POST', {consent: true}));
+  $('rewrite-text').value = draft.text; $('rewrite-reviewed').checked = false;
+  $('rewrite-editor').hidden = false; rewriteReady = true;
+  $('rewrite-status').textContent = `${draft.notice} ${draft.review_items.join(' ')}`;
+  const evidence = el('details'); evidence.append(el('summary', 'Review AI paragraph source evidence'));
+  for (const row of draft.evidence) evidence.append(el('p', row.text), el('blockquote', row.source_quote));
+  document.querySelectorAll('.ai-evidence').forEach(node => node.remove());
+  evidence.className = 'ai-evidence'; $('rewrite-editor').append(evidence);
 });
