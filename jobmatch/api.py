@@ -121,8 +121,8 @@ def create_app(store=None, jobs=None):
             if body.approach not in cache:
                 try:
                     cache[body.approach] = make_retriever(jobs, body.approach)
-                except (ImportError, OSError) as exc:
-                    raise HTTPException(503, "Optional model unavailable; install semantic dependencies and download the model") from exc
+                except (ImportError, OSError, RuntimeError) as exc:
+                    raise HTTPException(503, "Model loading failed. Check model dependencies and downloads; keyword search remains available.") from exc
             results = cache[body.approach].search(query, min(20, len(jobs)))
         results = apply_constraints(results, context)[:body.limit]
         if profile:

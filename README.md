@@ -226,6 +226,12 @@ Application CI verifies keyword/PDF/API tests, a Chromium workflow, a Docker hea
 
 ### Incremental fix: real résumé upload feedback
 
+### Incremental step: portable model setup
+
+If direct Hugging Face transfers are unreliable, manually run **Portable model bundle** in GitHub Actions and download its `portable-model-bundle` artifact. The workflow checks the public model cards' Apache-2.0 declarations, retains attribution/license material and bundles the exact pinned revisions. It contains model files only, with no profiles or résumés. Install an artifact from this repository's trusted workflow with `python scripts/install_model_bundle.py path/to/portable-model-bundle.zip`. The installer validates identities, paths, size limits and every file checksum before writing the local cache; it does not establish trust in an arbitrary third-party manifest. Dependencies from `.[semantic]` are still required. Restart the app after installation. The bundle expires after seven days and can be regenerated.
+
+Interrupted runtime model downloads now return an actionable JSON error and leave keyword search available. These setup changes have dedicated checksum/path and download-error tests. Full local model verification is reported separately after actual searches succeed.
+
 Each search approach now has its own initialization/inference lock. A slow semantic model download no longer holds the keyword search lock. Validation: 25 local tests passed, with five optional model/database tests skipped; a concurrency regression test holds semantic initialization open and confirms a keyword request still completes. Optional model dependencies are installed in the development workspace; first-use model-weight verification remains separate from installation.
 
 The interface now disables semantic/reranked choices when their optional model dependencies are missing and labels them `setup required`. `/health` reports dependency availability; it does not claim models are downloaded or usable until a search succeeds. The interface script is UTF-8. Validation: 24 local tests passed, with five optional model/database tests skipped, including missing-dependency reporting.

@@ -74,3 +74,18 @@ class ApiTests(unittest.TestCase):
             finally:
                 release.set()
             self.assertEqual(semantic.result(timeout=2).status_code, 200)
+
+    def test_failed_model_download_returns_actionable_json(self):
+        from unittest.mock import patch
+        from jobmatch.retrieval import TfidfRetriever
+
+        def make(jobs, approach):
+            if approach == "semantic":
+                raise RuntimeError("Interrupted model download")
+            return TfidfRetriever(jobs)
+
+        with patch("jobmatch.api.make_retriever", side_effect=make):
+            failed = self.client.post("/search", json={"query": "Python", "approach": "semantic"})
+            self.assertEqual(failed.status_code, 503)
+            self.assertIn("keyword search remains available", failed.json()["detail"])
+            self.assertEqual(self.client.post("/search", json={"query": "Python"}).status_code, 200)

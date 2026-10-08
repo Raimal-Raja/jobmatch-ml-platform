@@ -1,0 +1,26 @@
+name: Portable model bundle
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install huggingface-hub==0.36.0
+      - run: python scripts/build_model_bundle.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: portable-model-bundle
+          path: |
+            reports/model-bundle/manifest.json
+            reports/model-bundle/NOTICE.txt
+            reports/model-bundle/LICENSE.txt
+            reports/model-bundle/sentence-transformers--all-MiniLM-L6-v2/**
+            reports/model-bundle/cross-encoder--ms-marco-MiniLM-L6-v2/**
+          retention-days: 7
