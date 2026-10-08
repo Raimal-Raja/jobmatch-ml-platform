@@ -40,13 +40,11 @@ Enter a role, optional company, country/city and remote/onsite/hybrid preference
 
 Provider responses are cached locally for six hours, with bounded downloads and a retry cooldown. Only search criteria go to discovery; résumé data stays local. Selecting a candidate fills its description and compares it with the confirmed profile. Failed providers are reported separately from no matches. No matches means no matching fetched records, never proof that a company has no vacancy. Indeed is a filtered search link, not an automatically fetched source; pasted Indeed descriptions remain supported. No paid credentials are required.
 
-Live development verification on 8 October 2026: a generic `Python developer` remote query checked all three configured endpoints successfully and returned 20 displayed candidate listings. No résumé data was included. Availability and eligibility remain source-dependent and can change.
-
 ## Step 12 — Reviewed Word résumé draft
 
 After confirming the profile, expand the advanced option beneath readiness feedback. Prepare a source-preserving draft, edit it, confirm that you reviewed it, and download an editable single-column DOCX. The draft normalizes headings and bullets while retaining source claims. Apply profile corrections manually to the draft; no missing skills, employers, metrics or qualifications are invented. This feature reformats source text rather than generating new accomplishments or guaranteeing ATS acceptance. Export is generated in memory and not stored as an additional résumé file.
 
-Verification adds provider/cache/failure/privacy tests, readiness and export tests, browser download and selected-discovery comparison checks, and a separate CI job rendering a fictional DOCX to PDF/PNG for layout review. Local unit verification: **41 passed, five optional model/database tests skipped**. [Application checks](https://github.com/Raimal-Raja/jobmatch-ml-platform/actions/runs/37772656356) passed browser discovery selection, review-gated Word download, Docker, PostgreSQL and fictional export rendering; the exported page and browser screenshot were visually inspected. [Model-enabled checks and benchmark](https://github.com/Raimal-Raja/jobmatch-ml-platform/actions/runs/37772656255) also passed at implementation commit `b7419ab`. Browser discovery uses a deterministic fictional fixture; live provider availability is a separate check. Expanded human-reviewed evaluation and public deployment remain outstanding.
+Verification adds provider/cache/failure/privacy tests, readiness and export tests, browser download and selected-discovery comparison checks, and a separate CI job rendering a fictional DOCX to PDF/PNG for layout review. Local unit verification: **41 passed, five optional model/database tests skipped**. Browser and rendered-export verification must pass before this increment is considered verified. Expanded human-reviewed evaluation and public deployment remain outstanding.
 
 ## Run the sample
 
@@ -325,12 +323,11 @@ The functional local demo and engineering release materials are implemented. **T
 
 ---
 
-## Repository guide
+## Setup and repository reference
 
-### Contents
+### Project structure
 
 - [Dockerfile](Dockerfile)
-- [README.md](README.md)
 - [compose.yaml](compose.yaml)
 - [data](data)
 - [docs](docs)
@@ -348,7 +345,7 @@ git clone https://github.com/Raimal-Raja/jobmatch-ml-platform.git
 cd jobmatch-ml-platform
 ```
 
-Create an isolated Python environment and follow the existing workflow sections below. Core installation:
+Create an isolated Python environment and follow the existing workflow sections above. Core installation:
 
 ```bash
 python -m venv .venv
@@ -361,9 +358,19 @@ Start the API with the web extra installed: `python -m uvicorn jobmatch.api:app 
 
 ### Configuration and limitations
 
+Keyword mode runs without model weights. Semantic/reranked search needs the semantic extra and downloaded models. PostgreSQL checks are optional. Follow the profile confirmation, private-data and evaluation limitations documented above.
+
 ### Validation
 
-Reviewed on 2026-10-08. Existing suite: 34 tests passed; 5 optional tests skipped. This does not validate external models or a live database.
+Audit: 2026-10-08. Repository structure, setup instructions and description were reviewed. 34 existing Python files passed syntax checks; changed files and new regression tests were checked separately. 1 JavaScript files passed node --check; JSX/TypeScript production builds were not run. 41 regression tests passed; 5 optional model/database tests were skipped. Syntax checks do not establish full runtime correctness. External APIs, live scraping, GUI interaction, notebook training and production deployment were not comprehensively exercised.
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+### Repository description
+
+The short GitHub description is provided in [REPOSITORY_DESCRIPTION.md](REPOSITORY_DESCRIPTION.md).
 
 ### Contributions
 
