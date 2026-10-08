@@ -2,7 +2,7 @@
 
 An incremental Python project that will retrieve jobs for an editable résumé profile, compare keyword and semantic ranking, and explain strengths and gaps using source evidence. Match scores are ranking signals, never probabilities of getting hired.
 
-## Current status: Steps 1–7 implemented; human evaluation and public deployment remain
+## Current status: Steps 1–8 implemented; human evaluation and public deployment remain
 
 The working sample provides TF-IDF retrieval, local PDF profiles, semantic retrieval, cross-encoder reranking, explicit constraints, a FastAPI evidence interface, permitted manual ingestion, optional PostgreSQL/pgvector storage, Docker packaging and CI. The 12 fictional jobs and three fictional profiles form 36 provisional evaluation pairs; human label review and public-release validation remain.
 
@@ -16,7 +16,7 @@ The result separates recognized required/preferred/unclear skills, retains exact
 
 The interview section offers evidence-linked questions, concrete exercises for supported topics, an adjustable mock-interview agenda and a **seven-day preparation timetable**. Each day totals the chosen daily budget. Up to three skill priorities focus practice; required skills without evidence come first. These deterministic practice suggestions do not predict an employer's actual interview questions, stages, hiring decision or what can be mastered in one week. Company metadata is user-supplied and unverified. The platform never adds qualifications to the résumé.
 
-API: `POST /compare-target` takes `profile_id`, `listing` (`title`, `company`, `description` and optional `source_url`, `location`, `work_mode`), `additional_skills`, `context` and `minutes_per_day`. It rejects unconfirmed profiles, unsafe source schemes and invalid budgets. Changes to/deletion of the profile clear the derived browser comparison. Validation: 32 local tests passed with five optional model/database tests skipped, including exact source offsets, qualifier ambiguity, unknown-skill review, interview budget totals and the selected-job API flow. Browser CI additionally checks comparison, a not-evidenced skill, all seven timetable days and deletion cleanup.
+API: `POST /compare-target` takes `profile_id`, `listing` (`title`, `company`, `description` and optional `source_url`, `location`, `work_mode`), `additional_skills`, `context` and `minutes_per_day`. It rejects unconfirmed profiles, unsafe source schemes and invalid budgets. Changes to/deletion of the profile clear the derived browser comparison. Specific overlapping phrases such as `unit testing` are counted once. Validation: 33 local tests passed with five optional model/database tests skipped, including exact source offsets, qualifier ambiguity, unknown-skill review, interview budget totals and the selected-job API flow. Browser CI additionally checks comparison, a not-evidenced skill, all seven timetable days and deletion cleanup.
 
 ## Run the sample
 

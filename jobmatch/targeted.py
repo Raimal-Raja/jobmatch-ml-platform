@@ -54,12 +54,17 @@ def parse_listing(text, extra_skills=()):
         proof = {'source': 'job_description', 'start': match.start(), 'end': match.end(), 'quote': line}
         if line_kind in ('required', 'preferred'):
             source_requirements.append({'kind': line_kind, 'evidence': proof, 'status': 'needs_review'})
-        for skill in vocabulary:
-            if re.search(r'(?<![\w+#])' + re.escape(skill) + r'(?![\w+#])', line, re.I):
-                key = (skill.lower(), line_kind)
-                if key not in seen:
-                    seen.add(key)
-                    items.append({'skill': skill, 'kind': line_kind, 'evidence': proof})
+        candidates = [(found.start(), found.end(), skill) for skill in vocabulary
+                      for found in re.finditer(r'(?<![\w+#])' + re.escape(skill) + r'(?![\w+#])', line, re.I)]
+        accepted = []
+        for start, end, skill in sorted(candidates, key=lambda item: -(item[1] - item[0])):
+            if not any(start < previous_end and end > previous_start for previous_start, previous_end, _ in accepted):
+                accepted.append((start, end, skill))
+        for _, _, skill in sorted(accepted):
+            key = (skill.lower(), line_kind)
+            if key not in seen:
+                seen.add(key)
+                items.append({'skill': skill, 'kind': line_kind, 'evidence': proof})
     return items, source_requirements
 
 def interview_plan(items, minutes):

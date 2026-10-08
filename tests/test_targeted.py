@@ -60,3 +60,10 @@ class TargetedTests(unittest.TestCase):
         self.assertEqual(report['recognized_required_skills'], 0)
         self.assertTrue(all(item['kind'] == 'mentioned' for item in report['skills']))
         self.assertIn('3 years', report['preference_notes'][0])
+
+    def test_specific_skill_phrase_does_not_duplicate_generic_requirement(self):
+        listing = self.listing()
+        listing['description'] = 'Required: unit testing and REST APIs'
+        report = compare_target(self.profile(), listing)
+        self.assertEqual(report['recognized_required_skills'], 2)
+        self.assertEqual([item['skill'] for item in report['skills']], ['unit testing', 'REST APIs'])
