@@ -8,6 +8,16 @@ The working sample provides TF-IDF retrieval, local PDF profiles, semantic retri
 
 GitHub repository: [Raimal-Raja/jobmatch-ml-platform](https://github.com/Raimal-Raja/jobmatch-ml-platform).
 
+## Step 8: compare your chosen job and prepare for interviews
+
+The catalog search ranks 12 fictional listings and displays the top five by default. **Compare the job you choose** instead analyzes the specific title, company and full description you paste from a listing. Supply an optional source link, job location/work mode, unfamiliar skill names and a daily preparation budget (15–240 minutes). Confirm the résumé first, then click **Compare this job & prepare my week**. A link alone does not import the listing, and no job-board scraping is implemented. The pasted job is analyzed locally for this request; it is not added to training/evaluation data or the catalog.
+
+The result separates recognized required/preferred/unclear skills, retains exact job quotations and shows confirmed résumé support. Missing evidence is not proof of missing ability. Mixed required/preferred wording is marked unclear. Degree, certification, employment-duration and eligibility statements remain available for manual review; explicit required experience statements can be compared with your supplied years. The limited vocabulary can miss unfamiliar requirements, so review the full job text and supply additional exact skill names. Additional skill names must occur in the pasted description to produce a match.
+
+The interview section offers evidence-linked questions, concrete exercises for supported topics, an adjustable mock-interview agenda and a **seven-day preparation timetable**. Each day totals the chosen daily budget. Up to three skill priorities focus practice; required skills without evidence come first. These deterministic practice suggestions do not predict an employer's actual interview questions, stages, hiring decision or what can be mastered in one week. Company metadata is user-supplied and unverified. The platform never adds qualifications to the résumé.
+
+API: `POST /compare-target` takes `profile_id`, `listing` (`title`, `company`, `description` and optional `source_url`, `location`, `work_mode`), `additional_skills`, `context` and `minutes_per_day`. It rejects unconfirmed profiles, unsafe source schemes and invalid budgets. Changes to/deletion of the profile clear the derived browser comparison. Validation: 32 local tests passed with five optional model/database tests skipped, including exact source offsets, qualifier ambiguity, unknown-skill review, interview budget totals and the selected-job API flow. Browser CI additionally checks comparison, a not-evidenced skill, all seven timetable days and deletion cleanup.
+
 ## Run the sample
 
 Use Python 3.10 or later from the repository root. No paid credentials, model downloads or third-party packages are required. Installation is unnecessary for these commands.

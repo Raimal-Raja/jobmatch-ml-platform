@@ -31,6 +31,25 @@ class Search(BaseModel):
     limit: int = Field(default=5, ge=1, le=10)
 
 
+class TargetJob(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    title: str = Field(min_length=1, max_length=200)
+    company: str = Field(min_length=1, max_length=200)
+    description: str = Field(min_length=1, max_length=30000)
+    source_url: str = Field(default="", max_length=2000)
+    location: str = Field(default="", max_length=200)
+    work_mode: Literal["", "remote", "hybrid", "onsite"] = ""
+
+
+class TargetComparison(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    profile_id: str
+    listing: TargetJob
+    additional_skills: list[str] = Field(default_factory=list, max_length=50)
+    context: dict = Field(default_factory=dict)
+    minutes_per_day: int = Field(default=90, ge=15, le=240)
+
+
 def create_app(store=None, jobs=None):
     app = FastAPI(title="JobMatch", version="0.5.0", docs_url=None, redoc_url=None)
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1", "testserver"])
@@ -130,6 +149,12 @@ def create_app(store=None, jobs=None):
                 for requirement in row["assessment"]["required"] + row["assessment"]["preferred"]:
                     requirement["resume_evidence"] = [item for item in profile["skills"] if item["confirmed"] and item["value"].lower() == requirement["skill"].lower()]
         return {"approach": body.approach, "score_notice": "Ranking signals, not probabilities of getting hired", "results": results}
+
+    @app.post("/compare-target")
+    def compare_target_job(body: TargetComparison):
+        from .targeted import compare_target
+        return compare_target(store.get(body.profile_id), body.listing.model_dump(), body.context,
+                              body.additional_skills, body.minutes_per_day)
 
     return app
 

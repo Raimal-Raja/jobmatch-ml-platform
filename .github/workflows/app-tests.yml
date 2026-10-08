@@ -35,6 +35,7 @@ jobs:
           path: |
             reports/ui-demo.png
             reports/two-minute-demo.webm
+            reports/target-job-demo.png
   postgres:
     runs-on: ubuntu-latest
     services:

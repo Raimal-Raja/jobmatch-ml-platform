@@ -89,3 +89,21 @@ class ApiTests(unittest.TestCase):
             self.assertEqual(failed.status_code, 503)
             self.assertIn("keyword search remains available", failed.json()["detail"])
             self.assertEqual(self.client.post("/search", json={"query": "Python"}).status_code, 200)
+
+    def test_compare_selected_job_and_prepare_week(self):
+        uploaded = self.client.post('/profiles', content=sample_pdf()).json()
+        listing = {'title': 'Selected Python Job', 'company': 'Example Company',
+                   'description': 'Minimum qualifications\nPython and SQL\nPreferred qualifications\nRedis',
+                   'source_url': 'https://example.com/selected-job'}
+        body = {'profile_id': uploaded['id'], 'listing': listing, 'minutes_per_day': 60}
+        self.assertEqual(self.client.post('/compare-target', json=body).status_code, 400)
+        self.client.put('/profiles/' + uploaded['id'], json={'skills': ['Python'], 'experience': [], 'education': []})
+        response = self.client.post('/compare-target', json=body)
+        self.assertEqual(response.status_code, 200)
+        report = response.json()
+        self.assertEqual(report['listing'], {**listing, 'location': '', 'work_mode': ''})
+        self.assertEqual(report['recognized_required_skills'], 2)
+        self.assertEqual(report['required_skills_supported'], 1)
+        self.assertEqual(len(report['interview_plan']['days']), 7)
+        self.assertEqual(self.client.get('/health').json()['jobs'], 12)
+        self.assertIn('no-store', response.headers['Cache-Control'])

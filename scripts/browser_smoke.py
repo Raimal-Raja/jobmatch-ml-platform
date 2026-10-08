@@ -60,10 +60,24 @@ try:
         moment(96, "Learning priorities address requirements not evidenced in the profile. Study cannot replace required work experience.")
         page.reload()
         page.locator("#editor").wait_for(state="visible")
+        page.locator('#target-title').fill('Selected Python Developer')
+        page.locator('#target-company').fill('Example Company (fictional)')
+        page.locator('#target-url').fill('https://example.com/selected-job')
+        page.locator('#target-description').fill('Minimum qualifications\nPython and NovelFramework\nPreferred qualifications\nSQL')
+        page.locator('#target-skills').fill('NovelFramework')
+        page.locator('#target-minutes').fill('60')
+        page.locator('#compare-target').click()
+        page.locator('.target-comparison').wait_for()
+        assert page.locator('.target-comparison h3').inner_text() == 'Example Company (fictional) · Selected Python Developer'
+        assert 'NovelFramework · not evidenced' in page.locator('.target-comparison').inner_text()
+        assert page.locator('.day-card').count() == 7
+        assert 'not a prediction' in page.locator('.interview-plan').inner_text()
+        page.locator('#target-results').screenshot(path=str(root / 'reports/target-job-demo.png'))
         moment(108, "Refresh recovers the saved profile. Delete removes the stored PDF and profile; the original file is preserved.")
         page.locator("#delete").click()
         page.locator("#status").filter(has_text="profile deleted").wait_for()
         assert not page.locator("#editor").is_visible()
+        assert page.locator('#target-results').inner_text() == ''
         assert not errors, errors
         moment(116, "Three models are benchmarked honestly: reranking did not beat embeddings on the tiny provisional fixture. Human label review and public release remain pending.")
         if recording:
