@@ -57,7 +57,14 @@ class DiscoveryQuery(BaseModel):
     country: str = Field(default="", max_length=200)
     city: str = Field(default="", max_length=200)
     work_mode: Literal["", "remote", "hybrid", "onsite"] = ""
-    provider: Literal["all", "remotive", "arbeitnow", "arbeitnow-uk", "google"] = "all"
+    provider: Literal["auto", "all", "remotive", "arbeitnow", "arbeitnow-uk", "google"] = "auto"
+    profile_id: str | None = None
+
+
+class IntegrationSettings(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    nvidia_key: str = Field(default="", max_length=500)
+    search_key: str = Field(default="", max_length=500)
 
 
 class AIRewrite(BaseModel):
@@ -114,7 +121,22 @@ def create_app(store=None, jobs=None, discovery=None):
         model_dependencies = all(find_spec(name) is not None for name in ("torch", "sentence_transformers"))
         return {"status": "ok", "jobs": len(jobs),
                 "search_modes": {"tfidf": True, "semantic": model_dependencies, "reranked": model_dependencies},
+                "integrations": {"google_jobs": bool(os.environ.get('SERPAPI_API_KEY')), "nvidia": bool(os.environ.get('NVIDIA_API_KEY'))},
                 "model_notice": "Model modes need installed dependencies and a first-use model download; availability does not guarantee cached models."}
+
+    @app.post('/integrations')
+    def configure_integrations(body: IntegrationSettings):
+        if not body.nvidia_key.strip() and not body.search_key.strip():
+            raise ValueError('Enter a replacement NVIDIA key or a SerpAPI search key')
+        for name, value in (('NVIDIA_API_KEY', body.nvidia_key), ('SERPAPI_API_KEY', body.search_key)):
+            if value.strip():
+                if any(character.isspace() for character in value.strip()):
+                    raise ValueError('Keys cannot contain whitespace')
+        for name, value in (('NVIDIA_API_KEY', body.nvidia_key), ('SERPAPI_API_KEY', body.search_key)):
+            if value.strip():
+                os.environ[name] = value.strip()
+        return {'message': 'Configured for this server session only. Keys are not saved to files or returned.',
+                'integrations': {'google_jobs': bool(os.environ.get('SERPAPI_API_KEY')), 'nvidia': bool(os.environ.get('NVIDIA_API_KEY'))}}
 
     @app.get("/sample-resume")
     def sample():
@@ -160,10 +182,33 @@ def create_app(store=None, jobs=None, discovery=None):
 
     @app.post('/discover-jobs')
     def discover_jobs(body: DiscoveryQuery):
-        if body.provider == 'google':
+        query = body.model_dump(exclude={'profile_id'})
+        profile = store.get(body.profile_id) if body.profile_id else None
+        if profile and not profile.get('reviewed'):
+            raise ValueError('Confirm your résumé before finding matches')
+        if body.provider == 'google' or body.provider == 'auto' and os.environ.get('SERPAPI_API_KEY'):
             from .google_jobs import search_google
-            return search_google(body.model_dump())
-        return discovery.search(body.model_dump())
+            result = search_google(query)
+            if result['status'] in ('setup_required', 'source_unavailable'):
+                fallback = discovery.search({**query, 'provider': 'all'})
+                fallback['google_url'] = result['google_url']
+                fallback['message'] = result['message'] + ' Checked permitted providers instead. ' + fallback['message']
+                result = fallback
+        else:
+            result = discovery.search({**query, 'provider': 'all' if body.provider == 'auto' else body.provider})
+            if body.provider == 'auto' and body.company and not os.environ.get('SERPAPI_API_KEY'):
+                from .google_jobs import search_google
+                result['google_url'] = search_google(query)['google_url']
+                result['message'] = 'Company web search needs a SerpAPI key. Only limited permitted-provider records were checked. ' + result['message']
+        if profile:
+            from .targeted import compare_target
+            for job in result['jobs']:
+                comparison = compare_target(profile, {'title': job['title'], 'company': job['company'], 'description': job['description'],
+                    'source_url': job['source_url'], 'location': job['location'], 'work_mode': job['work_mode']})
+                job['match_preview'] = {'supported': [item['skill'] for item in comparison['skills'] if item['status'] == 'supported'],
+                    'not_evidenced': [item['skill'] for item in comparison['skills'] if item['status'] != 'supported'],
+                    'notice': 'Recognized skills only; select the listing for exact evidence and your preparation week.'}
+        return result
 
     @app.put("/profiles/{profile_id}")
     def update_profile(profile_id: str, body: Corrections):

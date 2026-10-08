@@ -148,3 +148,30 @@ class ApiTests(unittest.TestCase):
             self.assertEqual(len(result.json()['jobs']), 1)
             self.assertEqual(client.post('/discover-jobs', json={'role': 'Python', 'resume_text': 'private'}).status_code, 422)
         self.assertEqual(fetches, ['https://remotive.com/api/remote-jobs?limit=500'])
+
+    def test_automatic_company_search_previews_gaps_without_forwarding_resume(self):
+        from unittest.mock import patch
+        import os
+        uploaded = self.client.post('/profiles', content=sample_pdf()).json()
+        self.client.put('/profiles/' + uploaded['id'], json={'skills': ['Python'], 'experience': [], 'education': []})
+        candidate = {'title': 'Python Developer', 'company': 'Google', 'description': 'Required: Python and SQL',
+                     'source_url': 'https://example.com/fictional-job', 'location': 'Karachi', 'work_mode': '', 'notes': []}
+        with patch.dict(os.environ, {'SERPAPI_API_KEY': 'fictional-test-key'}), patch('jobmatch.google_jobs.search_google', return_value={'jobs': [candidate], 'status': 'found'}) as search:
+            result = self.client.post('/discover-jobs', json={'role': 'Python Developer', 'company': 'Google', 'profile_id': uploaded['id']})
+            self.assertEqual(result.status_code, 200)
+            preview = result.json()['jobs'][0]['match_preview']
+            self.assertIn('Python', preview['supported'])
+            self.assertIn('SQL', preview['not_evidenced'])
+            self.assertNotIn('profile_id', search.call_args.args[0])
+            self.assertNotIn('resume', str(search.call_args))
+
+    def test_session_configuration_returns_status_only(self):
+        from unittest.mock import patch
+        import os
+        with patch.dict(os.environ, {'NVIDIA_API_KEY': '', 'SERPAPI_API_KEY': ''}):
+            result = self.client.post('/integrations', json={'nvidia_key': 'fictional-test-key'})
+            self.assertEqual(result.status_code, 200)
+            self.assertTrue(self.client.get('/health').json()['integrations']['nvidia'])
+            self.assertNotIn('fictional-test-key', result.text)
+            self.assertEqual(self.client.post('/integrations', json={'search_key': 'bad key'}).status_code, 400)
+            self.assertEqual(self.client.post('/integrations', json={'nvidia_key': 'another-key'}, headers={'Origin': 'https://example.com'}).status_code, 403)

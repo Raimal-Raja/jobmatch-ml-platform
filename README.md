@@ -56,6 +56,12 @@ The supplied [Google Docs template](https://docs.google.com/document/d/1tbnWMFkK
 
 Verification: **43 local tests passed, five optional model/database tests skipped**. [Application checks](https://github.com/Raimal-Raja/jobmatch-ml-platform/actions/runs/37777268335) and [model checks](https://github.com/Raimal-Raja/jobmatch-ml-platform/actions/runs/37777268328) passed at `2f18c71`, including browser AI-consent/review gating and the Google setup fallback with fictional responses. The subsequent numeric-claim rejection passed its local regression test. The development server also returned `setup_required` and a filtered Google URL without a search key; no live AI/provider access is claimed.
 
+## Incremental fix — Automatic company search and usable setup
+
+The previous interface offered Google/AI actions without showing whether keys were configured, and Compare stopped when no description was pasted. The default source is now **Automatic**: Google Jobs is used when a SerpAPI key is configured; otherwise the limited public providers are checked and company-search limitations are stated explicitly. Google failures/setup problems fall back to these providers with a visible explanation, not a vacancy-absence claim. A confirmed résumé gives each candidate a preview of recognized strengths and skills without evidence; select one to view exact evidence and the preparation week. Clicking Compare with a role but no description starts discovery.
+
+The local interface reports integration status and offers masked key inputs under optional configuration. Keys stay only in server-process memory, are cleared from browser fields after submission, are not returned, and disappear on restart. Use a replacement NVIDIA key; SerpAPI is a separate search credential. The existing local-only host and same-origin restrictions apply. AI writing is disabled until configured and consented. This is a single-user loopback demo, not a public credential-management service. Configuration does not prove provider credentials are valid until a real request succeeds. No replacement/search keys are currently configured in the development server, so automatic Google access remains unavailable there; the UI states this rather than claiming the requested worldwide company-search feature is fully operational.
+
 ## Run the sample
 
 Use Python 3.10 or later from the repository root. No paid credentials, model downloads or third-party packages are required. Installation is unnecessary for these commands.

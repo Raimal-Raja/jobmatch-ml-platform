@@ -2,6 +2,7 @@ const $ = id => document.getElementById(id);
 let profileId = null;
 let profileReviewed = false;
 let rewriteReady = false;
+let integrations = {google_jobs: false, nvidia: false};
 function el(tag, text, className) { const node = document.createElement(tag); node.textContent = text; if (className) node.className = className; return node; }
 async function api(path, options = {}) { const response = await fetch(path, options); const data = await response.json(); if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail)); return data; }
 function jsonOptions(method, body) { return {method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)}; }
@@ -10,7 +11,7 @@ async function action(button, operation) {
   const label = button.textContent; button.disabled = true; button.textContent = 'Working…';
   try { await operation(); }
   catch (error) {
-    const status = button.id === 'compare-target' ? 'target-status' : button.id === 'discover-jobs' ? 'discovery-status' : ['prepare-rewrite','prepare-ai','download-rewrite'].includes(button.id) ? 'rewrite-status' : button.id === 'search' ? 'status' : 'profile-status';
+    const status = button.id === 'configure-services' ? 'setup-status' : button.id === 'compare-target' ? 'target-status' : button.id === 'discover-jobs' ? 'discovery-status' : ['prepare-rewrite','prepare-ai','download-rewrite'].includes(button.id) ? 'rewrite-status' : button.id === 'search' ? 'status' : 'profile-status';
     $(status).textContent = error.message;
   } finally { button.textContent = label; button.disabled = false; updateReadiness(); }
 }
@@ -18,7 +19,7 @@ function updateReadiness() {
   $('pdf').disabled = Boolean(profileId);
   $('upload').disabled = Boolean(profileId);
   $('prepare-rewrite').disabled = !profileReviewed;
-  $('prepare-ai').disabled = !profileReviewed || !$('ai-consent').checked;
+  $('prepare-ai').disabled = !profileReviewed || !integrations.nvidia || !$('ai-consent').checked;
   $('download-rewrite').disabled = !profileReviewed || !rewriteReady || !$('rewrite-reviewed').checked;
   $('compare-target').disabled = !profileReviewed;
   $('search').disabled = profileId ? !profileReviewed : !$('query').value.trim();
@@ -44,6 +45,7 @@ const detail=el('details'); detail.append(el('summary','View source evidence'));
 const previousId = sessionStorage.getItem('jobmatch-profile');
 if (previousId) api(`/profiles/${previousId}`).then(showProfile).catch(() => sessionStorage.removeItem('jobmatch-profile'));
 api('/health').then(health => {
+  showIntegrations(health.integrations);
   for (const option of $('approach').options) {
     if (health.search_modes[option.value] === false) {
       option.disabled = true;
@@ -64,7 +66,8 @@ $('compare-target').onclick = () => action($('compare-target'), async () => {
   const listing = {title: $('target-title').value.trim(), company: $('target-company').value.trim() || 'Not specified',
     source_url: $('target-url').value.trim(), description: $('target-description').value,
     location: $('target-location').value.trim(), work_mode: $('target-mode').value};
-  if (!listing.title || !listing.description.trim()) throw new Error('Choose a found listing or paste a role/title and full job description.');
+  if (!listing.title) throw new Error('Enter the job role you want.');
+  if (!listing.description.trim()) { $('target-status').textContent = 'Finding listings for your role. Choose a result to inspect evidence and your preparation week.'; $('discover-jobs').click(); return; }
   $('target-results').replaceChildren();
   $('target-status').textContent = 'Comparing the pasted listing with your confirmed résumé…';
   const data = await api('/compare-target', jsonOptions('POST', {profile_id: profileId, listing,
@@ -163,7 +166,7 @@ $('discover-jobs').onclick = () => action($('discover-jobs'), async () => {
   $('discovery-results').replaceChildren();
   const data = await api('/discover-jobs', jsonOptions('POST', {role, company: $('target-company').value.trim(),
     country: $('discovery-country').value.trim(), city: $('discovery-city').value.trim(),
-    work_mode: $('discovery-mode').value, provider: $('discovery-provider').value}));
+    work_mode: $('discovery-mode').value, provider: $('discovery-provider').value, ...(profileReviewed ? {profile_id: profileId} : {})}));
   $('discovery-status').textContent = data.message;
   $('discovery-results').append(el('p', data.notice, 'note'));
   const indeed = el('a', data.google_url ? 'Open this search on Google' : 'Open this role/company/location search on Indeed'); indeed.href = data.google_url || data.indeed_url;
@@ -179,6 +182,7 @@ $('discover-jobs').onclick = () => action($('discover-jobs'), async () => {
       el('p', `${job.location || 'Location not specified'} · ${job.work_mode || 'Arrangement unknown'}`, 'note'));
     const source = el('a', `View listing on ${job.provider}`); source.href = job.source_url; source.target = '_blank'; source.rel = 'noopener noreferrer'; card.append(source);
     for (const note of job.notes) card.append(el('p', note, 'note'));
+    if (job.match_preview) { card.append(el('p', `Résumé strengths: ${job.match_preview.supported.join(', ') || 'None recognized'}`), el('p', `Skills without résumé evidence: ${job.match_preview.not_evidenced.join(', ') || 'None recognized'}`), el('p', job.match_preview.notice, 'note')); }
     const choose = el('button', 'Use this listing and compare');
     choose.onclick = () => {
       for (const [field, value] of Object.entries({title: job.title, company: job.company, description: job.description,
@@ -204,4 +208,16 @@ $('prepare-ai').onclick = () => action($('prepare-ai'), async () => {
   for (const row of draft.evidence) evidence.append(el('p', row.text), el('blockquote', row.source_quote));
   document.querySelectorAll('.ai-evidence').forEach(node => node.remove());
   evidence.className = 'ai-evidence'; $('rewrite-editor').append(evidence);
+});
+
+function showIntegrations(value) {
+  integrations = value || {google_jobs: false, nvidia: false};
+  $('integration-status').textContent = `Job search: permitted providers ready. Google Jobs: ${integrations.google_jobs ? 'configured' : 'key needed; permitted-provider fallback available'}. AI writing: ${integrations.nvidia ? 'configured' : 'key needed; local draft available'}.`;
+  updateReadiness();
+}
+$('configure-services').onclick = () => action($('configure-services'), async () => {
+  try {
+    const result = await api('/integrations', jsonOptions('POST', {nvidia_key: $('nvidia-key').value.trim(), search_key: $('search-key').value.trim()}));
+    showIntegrations(result.integrations); $('setup-status').textContent = result.message;
+  } finally { $('nvidia-key').value = ''; $('search-key').value = ''; }
 });

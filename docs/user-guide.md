@@ -4,6 +4,10 @@ JobMatch compares your résumé with a job you choose. It shows supporting evide
 
 Choose **Google Jobs** under job source for Google-indexed descriptions. Automatic access requires `SERPAPI_API_KEY` on the server; otherwise use the Google search link and paste the full listing. Search does not send your résumé. NVIDIA and OpenRouter keys do not enable Google search.
 
+The default **Automatic** source uses Google Jobs when configured, otherwise checks the limited permitted providers. If you enter only a role/company, clicking **Compare** starts discovery. Found listings show recognized résumé strengths and gaps when your profile is confirmed; select a listing to see the full evidence and week plan. If a company is absent from the limited providers, that does not establish it has no vacancies.
+
+To enable Google company search, expand **Configure optional Google search and AI writing**, enter your SerpAPI key in its masked field, then click **Configure this session**. The availability status should change to configured. This stores the key only in server memory until restart. A configured key can still fail because of provider authentication, quota or availability; the app reports fallback. NVIDIA writing uses the other field and is a separate feature.
+
 Under the advanced résumé option, AI suggestions require a fresh `NVIDIA_API_KEY` on the server and the checkbox permitting résumé text to be sent to NVIDIA. Review the proposed text and source quotations before approving a Word download. The supplied Google Docs template opens separately for exact formatting; the downloaded Word draft uses the app's existing layout. Automatic native-template filling is not available.
 
 ## Compare a real job

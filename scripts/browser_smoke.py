@@ -85,6 +85,11 @@ try:
         page.locator('#target-results').screenshot(path=str(root / 'reports/target-job-demo.png'))
         page.locator('#ats-panel > details > summary').click()
         assert page.locator('#prepare-ai').is_disabled()
+        page.locator('#integration-status').locator('..').locator('summary').click()
+        page.locator('#nvidia-key').fill('fictional-browser-test-key')
+        page.locator('#configure-services').click()
+        page.locator('#setup-status').filter(has_text='Configured').wait_for()
+        assert page.locator('#nvidia-key').input_value() == ''
         page.locator('#ai-consent').check()
         assert page.locator('#prepare-ai').is_enabled()
         page.route('**/ai-rewrite', lambda route: route.fulfill(content_type='application/json', body='{"text":"Fictional Candidate\\nPython", "notice":"Fictional AI test fixture", "review_items":["Review all facts"], "evidence":[{"text":"Python", "source_quote":"Python"}]}'))
@@ -104,7 +109,8 @@ try:
         import json
         fixture = {'status': 'found', 'message': '1 fictional test listing found.', 'notice': 'Browser test fixture; not a live vacancy.', 'indeed_url': 'https://www.indeed.com/jobs?q=Python', 'sources': [], 'jobs': [{'title': 'Selected Python Developer', 'company': 'Example Company (fictional)', 'description': 'Minimum qualifications\nPython and NovelFramework', 'source_url': 'https://example.com/selected-job', 'location': 'Worldwide', 'work_mode': 'remote', 'provider': 'Fictional test source', 'provider_home': 'https://example.com', 'notes': []}]}
         page.route('**/discover-jobs', lambda route: route.fulfill(content_type='application/json', body=json.dumps(fixture)))
-        page.locator('#discover-jobs').click()
+        page.locator('#target-description').fill('')
+        page.locator('#compare-target').click()
         page.locator('#discovery-results button').first.wait_for()
         page.screenshot(path=str(root / 'reports/readiness-discovery-demo.png'), full_page=True)
         page.locator('#discovery-results button').first.click()
