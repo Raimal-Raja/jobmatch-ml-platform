@@ -18,6 +18,8 @@ The interview section offers evidence-linked questions, concrete exercises for s
 
 API: `POST /compare-target` takes `profile_id`, `listing` (`title`, `company`, `description` and optional `source_url`, `location`, `work_mode`), `additional_skills`, `context` and `minutes_per_day`. It rejects unconfirmed profiles, unsafe source schemes and invalid budgets. Changes to/deletion of the profile clear the derived browser comparison. Specific overlapping phrases such as `unit testing` are counted once. Validation: 33 local tests passed with five optional model/database tests skipped, including exact source offsets, qualifier ambiguity, unknown-skill review, interview budget totals and the selected-job API flow. Browser CI additionally checks comparison, a not-evidenced skill, all seven timetable days and deletion cleanup.
 
+The final [Application checks](https://github.com/Raimal-Raja/jobmatch-ml-platform/actions/runs/37755796179) and [model-enabled benchmark/tests](https://github.com/Raimal-Raja/jobmatch-ml-platform/actions/runs/37755796284) passed at implementation commit `24db13b`. View the [fictional selected-job comparison and seven-day timetable](reports/target-job-demo.png). A local API check also used a confirmed profile with a clearly fictional Python-developer listing; no personal résumé or comparison report was published. Targeted practice templates and skill vocabularies have not been evaluated against real employer interview outcomes.
+
 ## Run the sample
 
 Use Python 3.10 or later from the repository root. No paid credentials, model downloads or third-party packages are required. Installation is unnecessary for these commands.
@@ -146,6 +148,7 @@ Each step ends with a working sample, relevant verification and a README update 
 | 5 | FastAPI and browser evidence/skill-gap interface | Quotes trace to sources; gaps and learning priorities do not invent qualifications | Verified by browser CI |
 | 6 | PostgreSQL/pgvector, ingestion, Docker and CI | Permitted provenance, validation, duplicate controls, privacy and integration checks | Implemented; Docker/database CI passed |
 | 7 | Review workflow, MLflow, architecture and demo materials | Human review and deployment validation before public release | Release materials implemented; human review/public deployment pending |
+| 8 | User-selected job comparison and weekly interview preparation | Exact listing evidence, gaps, manual qualification review, practice questions and seven-day budget | Implemented; API and browser CI passed |
 
 The six-week proposal guides scheduling; these seven implementation checkpoints keep individual changes reviewable. Human review should start now and expand throughout the build. Future model selection must use development data separate from the final evaluation set.
 
