@@ -2,6 +2,10 @@
 
 JobMatch compares your résumé with a job you choose. It shows supporting evidence, requirements to review, and a one-week interview practice plan.
 
+Choose **Google Jobs** under job source for Google-indexed descriptions. Automatic access requires `SERPAPI_API_KEY` on the server; otherwise use the Google search link and paste the full listing. Search does not send your résumé. NVIDIA and OpenRouter keys do not enable Google search.
+
+Under the advanced résumé option, AI suggestions require a fresh `NVIDIA_API_KEY` on the server and the checkbox permitting résumé text to be sent to NVIDIA. Review the proposed text and source quotations before approving a Word download. The supplied Google Docs template opens separately for exact formatting; the downloaded Word draft uses the app's existing layout. Automatic native-template filling is not available.
+
 ## Compare a real job
 
 1. Open the local app at `http://127.0.0.1:8000/` and keep **Compare a job** selected.

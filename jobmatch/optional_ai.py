@@ -1,7 +1,13 @@
 """Opt-in NVIDIA rewriting; credentials only come from the server environment."""
 import json
 import os
-from urllib.request import Request, urlopen
+import re
+from urllib.request import Request, HTTPRedirectHandler, build_opener
+
+
+class NoRedirect(HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise ValueError('AI endpoint redirects are disabled')
 
 
 def generate_draft(profile, consent=False, transport=None):
@@ -25,7 +31,7 @@ def generate_draft(profile, consent=False, transport=None):
         else:
             request = Request('https://integrate.api.nvidia.com/v1/chat/completions',
                               data=json.dumps(payload).encode(), headers={'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json'})
-            with urlopen(request, timeout=60) as result:
+            with build_opener(NoRedirect()).open(request, timeout=60) as result:
                 raw = result.read(1024 * 1024 + 1)
                 if len(raw) > 1024 * 1024:
                     raise ValueError('Oversized AI response')
@@ -43,6 +49,8 @@ def generate_draft(profile, consent=False, transport=None):
         for row in rows:
             if not isinstance(row.get('text'), str) or not row['text'].strip() or not isinstance(row.get('source_quote'), str) or not row['source_quote'].strip() or row['source_quote'] not in evidence:
                 raise ValueError('Unsupported AI evidence')
+            if not set(re.findall(r'\d+(?:[.,]\d+)*', row['text'])).issubset(set(re.findall(r'\d+(?:[.,]\d+)*', evidence))):
+                raise ValueError('Invented numeric claim')
         text = '\n'.join(row['text'] for row in rows)
         if len(text) > 50000:
             raise ValueError('Oversized draft')

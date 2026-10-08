@@ -29,5 +29,7 @@ class OptionalServicesTests(unittest.TestCase):
             self.assertIn('Python', result['text'])
             with self.assertRaisesRegex(ValueError, 'failed evidence validation'):
                 generate_draft(profile, True, lambda payload: response('Invented employer'))
+            with self.assertRaisesRegex(ValueError, 'failed evidence validation'):
+                generate_draft(profile, True, lambda payload: {'choices': [{'finish_reason': 'stop', 'message': {'content': json.dumps({'paragraphs': [{'text': 'Improved APIs by 99%', 'source_quote': 'Built Python APIs'}]})}}]})
             with self.assertRaisesRegex(ValueError, 'no provider details'):
                 generate_draft(profile, True, lambda payload: (_ for _ in ()).throw(RuntimeError('fictional-test-value')))
