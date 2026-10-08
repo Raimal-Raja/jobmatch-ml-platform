@@ -107,3 +107,11 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(len(report['interview_plan']['days']), 7)
         self.assertEqual(self.client.get('/health').json()['jobs'], 12)
         self.assertIn('no-store', response.headers['Cache-Control'])
+
+    def test_partially_confirmed_profile_cannot_silently_search(self):
+        uploaded = self.client.post('/profiles', content=sample_pdf()).json()
+        partial = self.store.update(uploaded['id'], {'skills': ['Python']})
+        self.assertFalse(partial['reviewed'])
+        response = self.client.post('/search', json={'profile_id': uploaded['id']})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('confirm', response.json()['detail'])

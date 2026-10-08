@@ -10,6 +10,12 @@ GitHub repository: [Raimal-Raja/jobmatch-ml-platform](https://github.com/Raimal-
 
 ## Step 8: compare your chosen job and prepare for interviews
 
+### Step 9: a simpler daily workflow
+
+The app opens on **Compare a job**: (1) upload/review/confirm the résumé, (2) paste the selected title/company/description, (3) compare and read the preparation plan. Confirmed profile fields collapse under **Review or edit extracted information**. Optional inputs stay collapsed. Sample-catalog search has its own **Try sample-job search** tab and a **Search sample jobs** button, explicitly identifying its 12 fictional listings. It does not search Indeed or the web.
+
+Comparison is disabled until the profile is confirmed; unsaved edits require reconfirmation. The API also rejects partially confirmed profiles instead of silently searching a subset of fields. Buttons display **Working…**, and errors appear beside the action that failed. Validation: 34 local tests passed with five optional model/database tests skipped, including the partial-confirmation regression; browser CI checks the primary flow, tab switching, confirmation gating, sample search and selected-job comparison.
+
 The catalog search ranks 12 fictional listings and displays the top five by default. **Compare the job you choose** instead analyzes the specific title, company and full description you paste from a listing. Supply an optional source link, job location/work mode, unfamiliar skill names and a daily preparation budget (15–240 minutes). Confirm the résumé first, then click **Compare this job & prepare my week**. A link alone does not import the listing, and no job-board scraping is implemented. The pasted job is analyzed locally for this request; it is not added to training/evaluation data or the catalog.
 
 The result separates recognized required/preferred/unclear skills, retains exact job quotations and shows confirmed résumé support. Missing evidence is not proof of missing ability. Mixed required/preferred wording is marked unclear. Degree, certification, employment-duration and eligibility statements remain available for manual review; explicit required experience statements can be compared with your supplied years. The limited vocabulary can miss unfamiliar requirements, so review the full job text and supply additional exact skill names. Additional skill names must occur in the pasted description to produce a match.

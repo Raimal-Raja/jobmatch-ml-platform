@@ -132,6 +132,8 @@ def create_app(store=None, jobs=None):
         query = body.query
         if body.profile_id:
             profile = store.get(body.profile_id)
+            if not profile.get("reviewed"):
+                raise ValueError("Review and confirm your résumé before finding matches")
             query = store.search_text(body.profile_id) + ("\n" + query if query else "")
             context["skills"] = [item["value"] for item in profile["skills"] if item["confirmed"]]
         if not query.strip():
