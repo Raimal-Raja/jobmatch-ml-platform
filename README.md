@@ -307,7 +307,7 @@ The functional local demo and engineering release materials are implemented. **T
 
 ---
 
-# Repository guide
+## Repository guide
 
 ### Contents
 
@@ -339,7 +339,7 @@ python -m pip install -e .
 
 Activate the virtual environment before installing or running commands. Optional capabilities need the extras listed in pyproject.toml.
 
-Run individual Python exercises from their own folders. This collection has no single application entry point; dependencies and input files vary by exercise.
+Start the API with the web extra installed: `python -m uvicorn jobmatch.api:app --host 127.0.0.1 --port 8000`. Follow the original workflow sections above for profile review, job comparison, and evaluation.
 
 ### Configuration and limitations
 
