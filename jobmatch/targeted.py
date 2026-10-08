@@ -155,5 +155,5 @@ def compare_target(profile, listing, context=None, extra_skills=(), minutes=90):
                          'Skill extraction uses a limited vocabulary. Review all source requirements and add unfamiliar skill names to compare.',
                          'Mixed required/preferred wording in one line is labelled unclear; review its importance manually.',
                          'Employment duration, degrees, certifications and location eligibility require manual review; they are not inferred.',
-                         'The company, title and source link are supplied by you; the platform does not verify or fetch the listing.'],
+                         'Confirm listing metadata against its original source; comparison does not establish current availability or employer identity.'],
             'interview_plan': interview_plan(skills, minutes)}

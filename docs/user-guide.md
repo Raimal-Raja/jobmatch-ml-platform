@@ -25,3 +25,12 @@ The separate **Try sample-job search** tab searches 12 fictional listings and sh
 - If the app cannot connect, start the local server using the README instructions and refresh the page.
 
 The résumé is stored locally. **Delete stored résumé & profile** removes its stored copy and clears derived comparisons; your original PDF is unchanged.
+# New guided flow: readiness, discovery and export
+
+1. Upload a text-based PDF, inspect the extracted fields, correct them and confirm the profile.
+2. Read the readiness score and its component explanations. It estimates local text checks, not an employer's ATS result.
+3. Enter your desired role and optional company, country, city and work arrangement. Find jobs checks permitted providers. Review coverage, source links and eligibility notes, then select a listing to compare. Alternatively expand the manual-listing option and paste the full job description.
+4. Inspect exact evidence, skills without résumé support and the seven-day practice timetable. Unknown qualifications require your review.
+5. Optionally prepare an editable résumé draft beneath readiness feedback, correct it against your original, tick the review checkbox and download Word format. Add only qualifications you genuinely have.
+
+Indeed opens a filtered search link. Automatic discovery uses Remotive and Arbeitnow; an unavailable source is not a claim that no jobs exist. Résumé text is not sent to these providers.

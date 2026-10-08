@@ -5,7 +5,7 @@ from importlib.util import find_spec
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -50,10 +50,27 @@ class TargetComparison(BaseModel):
     minutes_per_day: int = Field(default=90, ge=15, le=240)
 
 
-def create_app(store=None, jobs=None):
+class DiscoveryQuery(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    role: str = Field(min_length=1, max_length=120)
+    company: str = Field(default="", max_length=200)
+    country: str = Field(default="", max_length=200)
+    city: str = Field(default="", max_length=200)
+    work_mode: Literal["", "remote", "hybrid", "onsite"] = ""
+    provider: Literal["all", "remotive", "arbeitnow", "arbeitnow-uk"] = "all"
+
+
+class ResumeExport(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    text: str = Field(min_length=1, max_length=50000)
+
+
+def create_app(store=None, jobs=None, discovery=None):
     app = FastAPI(title="JobMatch", version="0.5.0", docs_url=None, redoc_url=None)
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1", "testserver"])
     store = store or ProfileStore()
+    from .discovery import JobDiscovery
+    discovery = discovery or JobDiscovery(store.root.parent / 'provider_cache')
     jobs = jobs or load_jobs(os.environ.get("JOBMATCH_JOB_DATA", ROOT / "data/jobs.json"))
     cache = {}
     lock = threading.RLock()
@@ -112,6 +129,28 @@ def create_app(store=None, jobs=None):
     @app.get("/profiles/{profile_id}")
     def get_profile(profile_id: str):
         return store.get(profile_id)
+
+    @app.get('/profiles/{profile_id}/ats-check')
+    def ats_check(profile_id: str):
+        from .ats import check_resume
+        return check_resume(store.get(profile_id))
+
+    @app.get('/profiles/{profile_id}/rewrite')
+    def rewrite(profile_id: str):
+        from .rewrite import draft_resume
+        return draft_resume(store.get(profile_id))
+
+    @app.post('/profiles/{profile_id}/rewrite-export')
+    def rewrite_export(profile_id: str, body: ResumeExport):
+        from .rewrite import docx_bytes
+        if not store.get(profile_id).get('reviewed'):
+            raise ValueError('Confirm your profile before exporting a rewrite')
+        return Response(docx_bytes(body.text), media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                        headers={'Content-Disposition': 'attachment; filename="ResumeDraft.docx"'})
+
+    @app.post('/discover-jobs')
+    def discover_jobs(body: DiscoveryQuery):
+        return discovery.search(body.model_dump())
 
     @app.put("/profiles/{profile_id}")
     def update_profile(profile_id: str, body: Corrections):

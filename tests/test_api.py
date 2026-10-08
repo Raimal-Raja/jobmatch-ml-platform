@@ -115,3 +115,36 @@ class ApiTests(unittest.TestCase):
         response = self.client.post('/search', json={'profile_id': uploaded['id']})
         self.assertEqual(response.status_code, 400)
         self.assertIn('confirm', response.json()['detail'])
+
+    def test_readiness_and_reviewed_word_export(self):
+        from io import BytesIO
+        import zipfile
+        uploaded = self.client.post('/profiles', content=sample_pdf()).json()
+        profile_id = uploaded['id']
+        check = self.client.get(f'/profiles/{profile_id}/ats-check')
+        self.assertEqual(check.status_code, 200)
+        self.assertIn('score', check.json())
+        self.assertEqual(self.client.get(f'/profiles/{profile_id}/rewrite').status_code, 400)
+        self.client.put(f'/profiles/{profile_id}', json={'skills': ['Python'], 'experience': ['Developer'], 'education': []})
+        draft = self.client.get(f'/profiles/{profile_id}/rewrite').json()
+        export = self.client.post(f'/profiles/{profile_id}/rewrite-export', json={'text': draft['text']})
+        self.assertEqual(export.status_code, 200)
+        self.assertEqual(export.headers['Cache-Control'], 'no-store')
+        with zipfile.ZipFile(BytesIO(export.content)) as archive:
+            self.assertIn('word/document.xml', archive.namelist())
+
+    def test_discovery_needs_no_resume_and_does_not_forward_resume_fields(self):
+        from fastapi.testclient import TestClient
+        from jobmatch.api import create_app
+        from jobmatch.discovery import JobDiscovery
+        fetches = []
+        def fetch(url):
+            fetches.append(url)
+            return {'jobs': [{'title': 'Python Developer', 'company_name': 'Example', 'description': '<p>Required: Python</p>',
+                              'url': 'https://remotive.com/remote-jobs/example', 'candidate_required_location': 'Worldwide'}]}
+        with TestClient(create_app(self.store, discovery=JobDiscovery(Path(self.temporary.name) / 'cache', fetch))) as client:
+            result = client.post('/discover-jobs', json={'role': 'Python', 'provider': 'remotive'})
+            self.assertEqual(result.status_code, 200)
+            self.assertEqual(len(result.json()['jobs']), 1)
+            self.assertEqual(client.post('/discover-jobs', json={'role': 'Python', 'resume_text': 'private'}).status_code, 422)
+        self.assertEqual(fetches, ['https://remotive.com/api/remote-jobs?limit=500'])

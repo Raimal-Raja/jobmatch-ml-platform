@@ -7,3 +7,5 @@ private_data/
 .model_cache/
 mlruns/
 reports/model-bundle/
+reports/resume-draft-sample.docx
+reports/resume-render/

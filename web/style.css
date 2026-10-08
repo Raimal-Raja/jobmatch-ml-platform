@@ -5,3 +5,5 @@
 [hidden]{display:none!important}.flow-tabs{display:flex;gap:12px;margin-bottom:24px}.flow-tabs button{width:auto}.flow-tabs .active{background:#225f47;color:white}.intro{max-width:900px;padding:24px 0}.intro h1{font-size:clamp(30px,4vw,48px)}main{max-width:1080px}#editor>details{margin:16px 0}.optional{margin:14px 0}.optional>summary,#profile-fields>summary{font-weight:650;padding:10px 0}.target-panel,#demo-flow>.panel{margin-top:20px}@media(max-width:650px){.flow-tabs{flex-direction:column}.flow-tabs button{width:100%}}
 
 .flow-tabs button:not(.active){background:#eef2ec;color:#344e42}
+
+.readiness-score{font-size:36px;font-weight:750;margin:12px 0}.discovered-job{margin:16px 0;padding:16px;border:1px solid #d9e2d8;border-radius:10px;background:#fafcf9}.checkbox-label{display:flex;align-items:center;gap:10px}.checkbox-label input{width:auto;margin:0}#discovery-results{margin:16px 0}#rewrite-status{font-size:13px}

@@ -30,6 +30,22 @@ API: `POST /compare-target` takes `profile_id`, `listing` (`title`, `company`, `
 
 The final [Application checks](https://github.com/Raimal-Raja/jobmatch-ml-platform/actions/runs/37755796179) and [model-enabled benchmark/tests](https://github.com/Raimal-Raja/jobmatch-ml-platform/actions/runs/37755796284) passed at implementation commit `24db13b`. View the [fictional selected-job comparison and seven-day timetable](reports/target-job-demo.png). A local API check also used a confirmed profile with a clearly fictional Python-developer listing; no personal résumé or comparison report was published. Targeted practice templates and skill vocabularies have not been evaluated against real employer interview outcomes.
 
+## Step 10 — Résumé readiness feedback
+
+Upload a text PDF to see a transparent **0–100 local readiness estimate**: extractable text (35), email/phone (20), recognized section headings (20), year mentions (10), and readable characters (15). Inspect every component beside the score. This is not an employer's ATS test, hiring probability or acceptance guarantee. The text checks do not verify columns, graphics or reading order; headings and contact heuristics can miss international formats. Correct the extracted profile before comparing jobs.
+
+## Step 11 — Permitted job discovery
+
+Enter a role, optional company, country/city and remote/onsite/hybrid preference, then select **Find jobs**. Automatic discovery uses the [Remotive public API](https://github.com/remotive-com/remote-jobs-api) and [Arbeitnow API](https://www.arbeitnow.com/blog/job-board-api), with source attribution and original listing links. Remotive covers remote roles and delays data 24 hours; Arbeitnow primarily covers Europe, with a separate UK endpoint. Results cover at most 500 fetched records per source and 20 displayed candidates. Any country/city can be entered; worldwide coverage is not promised. Unknown arrangements and remote eligibility require employer confirmation.
+
+Provider responses are cached locally for six hours, with bounded downloads and a retry cooldown. Only search criteria go to discovery; résumé data stays local. Selecting a candidate fills its description and compares it with the confirmed profile. Failed providers are reported separately from no matches. No matches means no matching fetched records, never proof that a company has no vacancy. Indeed is a filtered search link, not an automatically fetched source; pasted Indeed descriptions remain supported. No paid credentials are required.
+
+## Step 12 — Reviewed Word résumé draft
+
+After confirming the profile, expand the advanced option beneath readiness feedback. Prepare a source-preserving draft, edit it, confirm that you reviewed it, and download an editable single-column DOCX. The draft normalizes headings and bullets while retaining source claims. Apply profile corrections manually to the draft; no missing skills, employers, metrics or qualifications are invented. This feature reformats source text rather than generating new accomplishments or guaranteeing ATS acceptance. Export is generated in memory and not stored as an additional résumé file.
+
+Verification adds provider/cache/failure/privacy tests, readiness and export tests, browser download and selected-discovery comparison checks, and a separate CI job rendering a fictional DOCX to PDF/PNG for layout review. Local unit verification: **41 passed, five optional model/database tests skipped**. Browser and rendered-export verification must pass before this increment is considered verified. Expanded human-reviewed evaluation and public deployment remain outstanding.
+
 ## Run the sample
 
 Use Python 3.10 or later from the repository root. No paid credentials, model downloads or third-party packages are required. Installation is unnecessary for these commands.

@@ -1,21 +1,24 @@
 const $ = id => document.getElementById(id);
 let profileId = null;
 let profileReviewed = false;
+let rewriteReady = false;
 function el(tag, text, className) { const node = document.createElement(tag); node.textContent = text; if (className) node.className = className; return node; }
 async function api(path, options = {}) { const response = await fetch(path, options); const data = await response.json(); if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail)); return data; }
 function jsonOptions(method, body) { return {method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)}; }
-function showProfile(profile) { profileReviewed = profile.reviewed; $('profile-fields').open = !profile.reviewed; $('target-results').replaceChildren(); $('target-status').textContent = profile.reviewed ? 'Profile confirmed. Add your target listing and compare.' : 'Review and confirm the profile before comparing a target job.'; $('profile-status').textContent = profile.reviewed ? 'Résumé confirmed. Paste your job description in step 2 below.' : 'PDF extracted. Review the fields below, then click Confirm corrected profile.'; profileId = profile.id; sessionStorage.setItem('jobmatch-profile', profileId); $('editor').hidden = false; for (const field of ['skills','experience','education']) $(field).value = [...new Set(profile[field].map(item => item.value))].join('\n'); $('source').textContent = profile.pages.map(page => `Page ${page.page}\n${page.text}`).join('\n\n'); updateReadiness(); }
+function showProfile(profile) { $('ats-panel').hidden = false; $('ats-status').textContent = 'Checking résumé text readiness…'; loadReadiness(profile.id); $('rewrite-editor').hidden = true; rewriteReady = false; profileReviewed = profile.reviewed; $('profile-fields').open = !profile.reviewed; $('target-results').replaceChildren(); $('target-status').textContent = profile.reviewed ? 'Profile confirmed. Add your target listing and compare.' : 'Review and confirm the profile before comparing a target job.'; $('profile-status').textContent = profile.reviewed ? 'Résumé confirmed. Paste your job description in step 2 below.' : 'PDF extracted. Review the fields below, then click Confirm corrected profile.'; profileId = profile.id; sessionStorage.setItem('jobmatch-profile', profileId); $('editor').hidden = false; for (const field of ['skills','experience','education']) $(field).value = [...new Set(profile[field].map(item => item.value))].join('\n'); $('source').textContent = profile.pages.map(page => `Page ${page.page}\n${page.text}`).join('\n\n'); updateReadiness(); }
 async function action(button, operation) {
   const label = button.textContent; button.disabled = true; button.textContent = 'Working…';
   try { await operation(); }
   catch (error) {
-    const status = button.id === 'compare-target' ? 'target-status' : button.id === 'search' ? 'status' : 'profile-status';
+    const status = button.id === 'compare-target' ? 'target-status' : button.id === 'discover-jobs' ? 'discovery-status' : ['prepare-rewrite','download-rewrite'].includes(button.id) ? 'rewrite-status' : button.id === 'search' ? 'status' : 'profile-status';
     $(status).textContent = error.message;
   } finally { button.textContent = label; button.disabled = false; updateReadiness(); }
 }
 function updateReadiness() {
   $('pdf').disabled = Boolean(profileId);
   $('upload').disabled = Boolean(profileId);
+  $('prepare-rewrite').disabled = !profileReviewed;
+  $('download-rewrite').disabled = !profileReviewed || !rewriteReady || !$('rewrite-reviewed').checked;
   $('compare-target').disabled = !profileReviewed;
   $('search').disabled = profileId ? !profileReviewed : !$('query').value.trim();
 }
@@ -32,7 +35,7 @@ for (const name of ['skills', 'experience', 'education']) $(name).addEventListen
 updateReadiness();
 $('upload').onclick = () => action($('upload'), async () => { if (profileId) throw new Error('Delete the current stored profile before importing a replacement.'); const file = $('pdf').files[0]; if (!file) throw new Error('Choose a PDF first.'); if (file.size > 10*1024*1024) throw new Error('PDF exceeds 10 MiB.'); $('profile-status').textContent = 'Extracting your PDF…'; showProfile(await api('/profiles',{method:'POST',headers:{'Content-Type':'application/pdf'},body:file})); $('status').textContent = 'Draft extracted. Correct all fields, then confirm the profile.'; });
 $('save').onclick = () => action($('save'), async () => { const corrections = {}; for (const field of ['skills','experience','education']) corrections[field] = $(field).value.split('\n').map(v=>v.trim()).filter(Boolean); showProfile(await api(`/profiles/${profileId}`, jsonOptions('PUT',corrections))); $('status').textContent = 'Profile confirmed. Your edits are saved locally.'; });
-$('delete').onclick = () => action($('delete'), async () => { await api(`/profiles/${profileId}`,{method:'DELETE'}); profileId = null; profileReviewed = false; sessionStorage.removeItem('jobmatch-profile'); $('editor').hidden = true; $('source').textContent = ''; for (const field of ['skills','experience','education']) $(field).value = ''; $('pdf').value = ''; $('matches').replaceChildren(); $('target-results').replaceChildren(); $('target-status').textContent = 'Confirm a profile before comparing a job.'; $('count').textContent = 'Ready when you are'; $('profile-status').textContent = 'Stored résumé and profile deleted. Your original file is unchanged.'; });
+$('delete').onclick = () => action($('delete'), async () => { await api(`/profiles/${profileId}`,{method:'DELETE'}); profileId = null; profileReviewed = false; sessionStorage.removeItem('jobmatch-profile'); $('editor').hidden = true; $('source').textContent = ''; for (const field of ['skills','experience','education']) $(field).value = ''; $('pdf').value = ''; $('matches').replaceChildren(); $('target-results').replaceChildren(); $('ats-panel').hidden = true; $('ats-results').replaceChildren(); $('rewrite-text').value = ''; $('rewrite-editor').hidden = true; rewriteReady = false; $('target-status').textContent = 'Confirm a profile before comparing a job.'; $('count').textContent = 'Ready when you are'; $('profile-status').textContent = 'Stored résumé and profile deleted. Your original file is unchanged.'; });
 $('search').onclick = () => action($('search'), async () => { $('status').textContent = 'Searching the 12 fictional sample jobs… model startup may take up to a minute.'; const context = {}; if ($('years').value !== '') context.experience_years = Number($('years').value); if ($('locations').value.trim()) context.locations = $('locations').value.split(',').map(v=>v.trim()).filter(Boolean); if ($('mode').value) context.work_modes = [$('mode').value]; const data = await api('/search',jsonOptions('POST',{query:$('query').value,profile_id:profileId,approach:$('approach').value,context})); $('matches').replaceChildren(); $('count').textContent = `${data.results.length} matches`; $('status').textContent = 'These are sample-catalog results. Use Compare a job to check a real listing.'; for (const row of data.results) renderMatch(row); });
 function renderMatch(row) { const card = el('article','', 'match'); card.append(el('h3',row.job.title),el('p',`${row.job.location} · ${row.job.work_mode}`, 'meta'),el('p',`Ranking signal: ${row.score.toFixed(4)}`, 'score')); for (const conflict of row.assessment.conflicts) card.append(el('p',conflict.message,'conflict')); for (const kind of ['required','preferred']) { card.append(el('h4',`${kind === 'required' ? 'Required' : 'Preferred'} skills`)); const tags=el('div','','tags'); for (const item of row.assessment[kind]) tags.append(el('span',`${item.skill} · ${item.status.replace('_',' ')}`,`pill ${item.status}`)); card.append(tags); }
 if (row.assessment.learning_priorities.length) {card.append(el('h4','Focused learning priorities')); const list=el('ul'); for (const item of row.assessment.learning_priorities) list.append(el('li',item.action)); card.append(list);}
@@ -57,10 +60,10 @@ function preferences() {
 }
 $('compare-target').onclick = () => action($('compare-target'), async () => {
   if (!profileId || !profileReviewed) throw new Error('Complete step 1: review and confirm your résumé.');
-  const listing = {title: $('target-title').value.trim(), company: $('target-company').value.trim(),
+  const listing = {title: $('target-title').value.trim(), company: $('target-company').value.trim() || 'Not specified',
     source_url: $('target-url').value.trim(), description: $('target-description').value,
     location: $('target-location').value.trim(), work_mode: $('target-mode').value};
-  if (!listing.title || !listing.company || !listing.description.trim()) throw new Error('Enter the job title, company and full job description.');
+  if (!listing.title || !listing.description.trim()) throw new Error('Choose a found listing or paste a role/title and full job description.');
   $('target-results').replaceChildren();
   $('target-status').textContent = 'Comparing the pasted listing with your confirmed résumé…';
   const data = await api('/compare-target', jsonOptions('POST', {profile_id: profileId, listing,
@@ -73,7 +76,7 @@ function renderTarget(data) {
   const card = el('article', '', 'match target-comparison');
   card.append(el('h3', `${data.listing.company} · ${data.listing.title}`));
   if (data.listing.source_url) {
-    const link = el('a', 'Source listing · supplied by you'); link.href = data.listing.source_url;
+    const link = el('a', 'Open original listing'); link.href = data.listing.source_url;
     link.target = '_blank'; link.rel = 'noopener noreferrer'; card.append(link);
   }
   card.append(el('p', `${data.required_skills_supported}/${data.recognized_required_skills} recognized required skills evidenced. This is not a hiring probability.`, 'note'));
@@ -121,3 +124,68 @@ function renderTarget(data) {
   }
   preparation.append(week); $('target-results').append(preparation);
 }
+
+async function loadReadiness(id) {
+  try {
+    const data = await api(`/profiles/${id}/ats-check`);
+    if (profileId !== id) return;
+    $('ats-status').textContent = data.label;
+    $('ats-results').replaceChildren(el('p', `${data.score}/100`, 'readiness-score'), el('p', data.notice, 'note'));
+    const checks = el('details'); checks.append(el('summary', 'See how the score is calculated'));
+    for (const item of data.checks) checks.append(el('h4', `${item.name} · ${item.points}/${item.maximum}`), el('p', item.detail));
+    $('ats-results').append(checks);
+    for (const item of data.limitations) $('ats-results').append(el('p', item, 'note'));
+  } catch (error) { if (profileId === id) $('ats-status').textContent = `Readiness check unavailable: ${error.message}`; }
+}
+$('prepare-rewrite').onclick = () => action($('prepare-rewrite'), async () => {
+  const draft = await api(`/profiles/${profileId}/rewrite`);
+  $('rewrite-text').value = draft.text; $('rewrite-reviewed').checked = false;
+  $('rewrite-editor').hidden = false; rewriteReady = true;
+  $('rewrite-status').textContent = `${draft.notice} ${draft.review_items.join(' ')}`;
+});
+$('rewrite-reviewed').addEventListener('change', updateReadiness);
+$('rewrite-text').addEventListener('input', () => { $('rewrite-reviewed').checked = false; updateReadiness(); });
+$('download-rewrite').onclick = () => action($('download-rewrite'), async () => {
+  if (!$('rewrite-reviewed').checked) throw new Error('Review and confirm the draft before downloading.');
+  const response = await fetch(`/profiles/${profileId}/rewrite-export`, jsonOptions('POST', {text: $('rewrite-text').value}));
+  if (!response.ok) { const error = await response.json(); throw new Error(error.detail || 'Export failed'); }
+  const address = URL.createObjectURL(await response.blob()), link = el('a');
+  link.href = address; link.download = 'ResumeDraft.docx'; document.body.append(link); link.click(); link.remove();
+  setTimeout(() => URL.revokeObjectURL(address), 30000);
+  $('rewrite-status').textContent = 'Word draft downloaded. Review its layout and facts before submitting; ATS acceptance is not guaranteed.';
+});
+$('discover-jobs').onclick = () => action($('discover-jobs'), async () => {
+  const role = $('target-title').value.trim();
+  if (!role) throw new Error('Enter the role you want, such as Python Developer.');
+  $('discovery-status').textContent = 'Checking permitted job providers… the first request may take up to a minute.';
+  $('discovery-results').replaceChildren();
+  const data = await api('/discover-jobs', jsonOptions('POST', {role, company: $('target-company').value.trim(),
+    country: $('discovery-country').value.trim(), city: $('discovery-city').value.trim(),
+    work_mode: $('discovery-mode').value, provider: $('discovery-provider').value}));
+  $('discovery-status').textContent = data.message;
+  $('discovery-results').append(el('p', data.notice, 'note'));
+  const indeed = el('a', 'Open this role/company/location search on Indeed'); indeed.href = data.indeed_url;
+  indeed.target = '_blank'; indeed.rel = 'noopener noreferrer'; $('discovery-results').append(indeed);
+  for (const source of data.sources) {
+    const link = el('a', `Source: ${source.name} · ${source.status}`); link.href = source.home; link.target = '_blank'; link.rel = 'noopener noreferrer';
+    const detail = el('details'); detail.append(el('summary', `${source.name}: ${source.records_checked} records checked`), link,
+      el('p', source.coverage), el('p', source.message || `Fetched ${new Date(source.fetched_at * 1000).toLocaleString()}`));
+    $('discovery-results').append(detail);
+  }
+  for (const job of data.jobs) {
+    const card = el('article', '', 'discovered-job'); card.append(el('h4', `${job.company} · ${job.title}`),
+      el('p', `${job.location || 'Location not specified'} · ${job.work_mode || 'Arrangement unknown'}`, 'note'));
+    const source = el('a', `View listing on ${job.provider}`); source.href = job.source_url; source.target = '_blank'; source.rel = 'noopener noreferrer'; card.append(source);
+    for (const note of job.notes) card.append(el('p', note, 'note'));
+    const choose = el('button', 'Use this listing and compare');
+    choose.onclick = () => {
+      for (const [field, value] of Object.entries({title: job.title, company: job.company, description: job.description,
+        url: job.source_url, location: job.location, mode: job.work_mode})) $('target-' + field).value = value;
+      $('manual-listing').open = true;
+      $('target-results').replaceChildren();
+      if (profileReviewed) $('compare-target').click();
+      else $('target-status').textContent = 'Listing selected. Upload and confirm your résumé to compare it.';
+    };
+    card.append(choose); $('discovery-results').append(card);
+  }
+});
