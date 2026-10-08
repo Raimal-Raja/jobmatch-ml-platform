@@ -54,6 +54,8 @@ Optional AI rewriting uses [NVIDIA's chat-completions endpoint](https://docs.api
 
 The supplied [Google Docs template](https://docs.google.com/document/d/1tbnWMFkKT0c4Mh_IKhrobi_yK8qtjL6vkCgvXWCIKI0/edit) was inspected: one tab, centered Spectral name/contact opening, experience with project bullets, education and skills. Its sample employers, metrics and qualifications must never become candidate facts. The app links to the native template for exact formatting; its existing Word export remains the documented single-column layout. Automatic native-template filling is not implemented. OpenRouter is not configured in this increment. Local fallback remains available without credentials. Live paid-service verification requires locally configured replacement/search keys; mocked tests do not prove live provider access.
 
+Verification: **43 local tests passed, five optional model/database tests skipped**. [Application checks](https://github.com/Raimal-Raja/jobmatch-ml-platform/actions/runs/37777268335) and [model checks](https://github.com/Raimal-Raja/jobmatch-ml-platform/actions/runs/37777268328) passed at `2f18c71`, including browser AI-consent/review gating and the Google setup fallback with fictional responses. The subsequent numeric-claim rejection passed its local regression test. The development server also returned `setup_required` and a filtered Google URL without a search key; no live AI/provider access is claimed.
+
 ## Run the sample
 
 Use Python 3.10 or later from the repository root. No paid credentials, model downloads or third-party packages are required. Installation is unnecessary for these commands.
