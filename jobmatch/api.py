@@ -5,6 +5,8 @@ from importlib.util import find_spec
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.exception_handlers import request_validation_exception_handler
 from fastapi.responses import FileResponse, JSONResponse, Response
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from pydantic import BaseModel, ConfigDict, Field
@@ -107,6 +109,12 @@ def create_app(store=None, jobs=None, discovery=None):
     @app.exception_handler(FileNotFoundError)
     async def missing(request, exc):
         return JSONResponse({"detail": "Profile not found"}, status_code=404)
+
+    @app.exception_handler(RequestValidationError)
+    async def invalid_request(request, exc):
+        if request.url.path == '/integrations':
+            return JSONResponse({'detail': 'Invalid integration settings. Supply only text keys of at most 500 characters.'}, status_code=422)
+        return await request_validation_exception_handler(request, exc)
 
     @app.get("/")
     def index():

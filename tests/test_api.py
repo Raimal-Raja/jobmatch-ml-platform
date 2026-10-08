@@ -173,5 +173,8 @@ class ApiTests(unittest.TestCase):
             self.assertEqual(result.status_code, 200)
             self.assertTrue(self.client.get('/health').json()['integrations']['nvidia'])
             self.assertNotIn('fictional-test-key', result.text)
+            invalid = self.client.post('/integrations', json={'search_key': 'secret-value-' * 100})
+            self.assertEqual(invalid.status_code, 422)
+            self.assertNotIn('secret-value', invalid.text)
             self.assertEqual(self.client.post('/integrations', json={'search_key': 'bad key'}).status_code, 400)
             self.assertEqual(self.client.post('/integrations', json={'nvidia_key': 'another-key'}, headers={'Origin': 'https://example.com'}).status_code, 403)
