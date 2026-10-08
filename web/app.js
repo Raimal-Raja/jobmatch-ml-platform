@@ -14,6 +14,8 @@ async function action(button, operation) {
   } finally { button.textContent = label; button.disabled = false; updateReadiness(); }
 }
 function updateReadiness() {
+  $('pdf').disabled = Boolean(profileId);
+  $('upload').disabled = Boolean(profileId);
   $('compare-target').disabled = !profileReviewed;
   $('search').disabled = profileId ? !profileReviewed : !$('query').value.trim();
 }

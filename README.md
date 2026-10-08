@@ -2,11 +2,13 @@
 
 An incremental Python project that will retrieve jobs for an editable résumé profile, compare keyword and semantic ranking, and explain strengths and gaps using source evidence. Match scores are ranking signals, never probabilities of getting hired.
 
-## Current status: Steps 1–8 implemented; human evaluation and public deployment remain
+## Current status: Steps 1–9 implemented; human evaluation and public deployment remain
 
 The working sample provides TF-IDF retrieval, local PDF profiles, semantic retrieval, cross-encoder reranking, explicit constraints, a FastAPI evidence interface, permitted manual ingestion, optional PostgreSQL/pgvector storage, Docker packaging and CI. The 12 fictional jobs and three fictional profiles form 36 provisional evaluation pairs; human label review and public-release validation remain.
 
 GitHub repository: [Raimal-Raja/jobmatch-ml-platform](https://github.com/Raimal-Raja/jobmatch-ml-platform).
+
+Start with the [short user guide](docs/user-guide.md). The default task is to compare your résumé with a job description you paste. Sample-catalog search is a separate demonstration tab.
 
 ## Step 8: compare your chosen job and prepare for interviews
 
@@ -15,6 +17,8 @@ GitHub repository: [Raimal-Raja/jobmatch-ml-platform](https://github.com/Raimal-
 The app opens on **Compare a job**: (1) upload/review/confirm the résumé, (2) paste the selected title/company/description, (3) compare and read the preparation plan. Confirmed profile fields collapse under **Review or edit extracted information**. Optional inputs stay collapsed. Sample-catalog search has its own **Try sample-job search** tab and a **Search sample jobs** button, explicitly identifying its 12 fictional listings. It does not search Indeed or the web.
 
 Comparison is disabled until the profile is confirmed; unsaved edits require reconfirmation. The API also rejects partially confirmed profiles instead of silently searching a subset of fields. Buttons display **Working…**, and errors appear beside the action that failed. Validation: 34 local tests passed with five optional model/database tests skipped, including the partial-confirmation regression; browser CI checks the primary flow, tab switching, confirmation gating, sample search and selected-job comparison.
+
+The [Application checks](https://github.com/Raimal-Raja/jobmatch-ml-platform/actions/runs/37758398877) and [model-enabled benchmark/tests](https://github.com/Raimal-Raja/jobmatch-ml-platform/actions/runs/37758398828) passed at implementation commit `80febe0`. A local sample search with a confirmed profile returned five results. The default comparison workflow and the sample search remain separate tasks.
 
 The catalog search ranks 12 fictional listings and displays the top five by default. **Compare the job you choose** instead analyzes the specific title, company and full description you paste from a listing. Supply an optional source link, job location/work mode, unfamiliar skill names and a daily preparation budget (15–240 minutes). Confirm the résumé first, then click **Compare this job & prepare my week**. A link alone does not import the listing, and no job-board scraping is implemented. The pasted job is analyzed locally for this request; it is not added to training/evaluation data or the catalog.
 
@@ -155,6 +159,7 @@ Each step ends with a working sample, relevant verification and a README update 
 | 6 | PostgreSQL/pgvector, ingestion, Docker and CI | Permitted provenance, validation, duplicate controls, privacy and integration checks | Implemented; Docker/database CI passed |
 | 7 | Review workflow, MLflow, architecture and demo materials | Human review and deployment validation before public release | Release materials implemented; human review/public deployment pending |
 | 8 | User-selected job comparison and weekly interview preparation | Exact listing evidence, gaps, manual qualification review, practice questions and seven-day budget | Implemented; API and browser CI passed |
+| 9 | Simplified user workflow and confirmation handling | Separate task tabs, clear feedback, no searches on partially confirmed profiles | Implemented; browser and API verification passed |
 
 The six-week proposal guides scheduling; these seven implementation checkpoints keep individual changes reviewable. Human review should start now and expand throughout the build. Future model selection must use development data separate from the final evaluation set.
 
