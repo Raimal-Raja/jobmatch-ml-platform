@@ -304,3 +304,53 @@ MLflow stores metrics, fixture fingerprint, label status and the JSON report in 
 Release verification: 21 local tests passed, with five model/database tests skipped locally. The [Application checks](https://github.com/Raimal-Raja/jobmatch-ml-platform/actions/runs/37599353568) passed browser upload/correction/search/evidence/refresh/deletion, Docker startup and PostgreSQL checks. The [Retrieval benchmark](https://github.com/Raimal-Raja/jobmatch-ml-platform/actions/runs/37599353582) passed real-model verification, three-method evaluation and SQLite MLflow logging. These runs verified implementation commit `2db59b3`; the subsequent release update adds documentation and recorded media.
 
 The functional local demo and engineering release materials are implemented. **The original full release is not yet complete:** an expanded human-reviewed evaluation, production upload isolation/authentication, a configured public hosting target and deployed end-to-end latency/cost measurements remain. The current corpus remains 12 fictional jobs and three profiles. Docker/loopback deployment is the supported demo mode; no public deployment or validated real-world accuracy is claimed. Résumé achievement numbers must keep these qualifications.
+
+---
+
+# Repository guide
+
+### Contents
+
+- [Dockerfile](Dockerfile)
+- [README.md](README.md)
+- [compose.yaml](compose.yaml)
+- [data](data)
+- [docs](docs)
+- [jobmatch](jobmatch)
+- [pyproject.toml](pyproject.toml)
+- [reports](reports)
+- [scripts](scripts)
+- [tests](tests)
+- [web](web)
+
+### Getting started
+
+```bash
+git clone https://github.com/Raimal-Raja/jobmatch-ml-platform.git
+cd jobmatch-ml-platform
+```
+
+Create an isolated Python environment and follow the existing workflow sections below. Core installation:
+
+```bash
+python -m venv .venv
+python -m pip install -e .
+```
+
+Activate the virtual environment before installing or running commands. Optional capabilities need the extras listed in pyproject.toml.
+
+Run individual Python exercises from their own folders. This collection has no single application entry point; dependencies and input files vary by exercise.
+
+### Configuration and limitations
+
+### Validation
+
+Reviewed on 2026-10-08. Existing suite: 34 tests passed; 5 optional tests skipped. This does not validate external models or a live database.
+
+### Contributions
+
+Describe the issue, reproduction steps, environment, and expected behavior when proposing a change. Keep generated environments, credentials, and unnecessary build artifacts out of new commits.
+
+### License
+
+No top-level license file was found during this review.
