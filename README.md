@@ -224,13 +224,35 @@ Application CI verifies keyword/PDF/API tests, a Chromium workflow, a Docker hea
 
 ## Step 7: release materials and honest completion status
 
-### Incremental fix: real résumé upload feedback
-
 ### Incremental step: portable model setup
 
 If direct Hugging Face transfers are unreliable, manually run **Portable model bundle** in GitHub Actions and download its `portable-model-bundle` artifact. The workflow checks the public model cards' Apache-2.0 declarations, retains attribution/license material and bundles the exact pinned revisions. It contains model files only, with no profiles or résumés. Install an artifact from this repository's trusted workflow with `python scripts/install_model_bundle.py path/to/portable-model-bundle.zip`. The installer validates identities, paths, size limits and every file checksum before writing the local cache; it does not establish trust in an arbitrary third-party manifest. Dependencies from `.[semantic]` are still required. Restart the app after installation. The bundle expires after seven days and can be regenerated.
 
 Interrupted runtime model downloads now return an actionable JSON error and leave keyword search available. These setup changes have dedicated checksum/path and download-error tests. Full local model verification is reported separately after actual searches succeed.
+
+The [portable bundle run](https://github.com/Raimal-Raja/jobmatch-ml-platform/actions/runs/37731607365), [Application checks](https://github.com/Raimal-Raja/jobmatch-ml-platform/actions/runs/37731504775), and [real-model benchmark](https://github.com/Raimal-Raja/jobmatch-ml-platform/actions/runs/37731504746) passed at implementation commit `6781712`. Locally, 28 tests passed with five optional model/database tests skipped. Generated bundles, caches and private profiles are excluded from Git.
+
+After installing the bundle in the development workspace, all three approaches passed actual API searches with a confirmed local résumé profile: each returned five matches, and every returned résumé evidence quotation matched its stored source text exactly. The model-enabled offline test suite passed **32 tests**, with only the PostgreSQL integration test skipped locally. No résumé/profile data or private verification reports were committed.
+
+Warm local API timing over 20 sequential searches per approach, using one profile and the 12 fictional jobs:
+
+| Approach | Warm p95 response time |
+| --- | ---: |
+| TF-IDF | 44 ms |
+| Embeddings | 227 ms |
+| Retrieval + reranker | 2,927 ms |
+
+These small-sample timings include HTTP, profile loading, ranking, constraints and evidence assembly on this desktop. They are not deployed latency or relevance measurements. Initial embedding-model loading took about 33 seconds before warming; first-use initialization is excluded from the table. Paid API cost was zero; infrastructure cost remains unmeasured. Reranking is slower and does not necessarily improve this fixture's ordering.
+
+To use the installed bundle without model-network requests, set `HF_HUB_OFFLINE=1` before starting the server. To run model tests after installing dependencies and cache files:
+
+```powershell
+$env:JOBMATCH_RUN_MODEL_TESTS = '1'
+$env:HF_HUB_OFFLINE = '1'
+python -m unittest discover -s tests -v
+```
+
+### Incremental fix: real résumé upload feedback
 
 Each search approach now has its own initialization/inference lock. A slow semantic model download no longer holds the keyword search lock. Validation: 25 local tests passed, with five optional model/database tests skipped; a concurrency regression test holds semantic initialization open and confirms a keyword request still completes. Optional model dependencies are installed in the development workspace; first-use model-weight verification remains separate from installation.
 
