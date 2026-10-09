@@ -77,9 +77,9 @@ python -m unittest discover -s tests -v
 On Windows, use `py -3` if Python is installed through the launcher. In this Codex workspace neither `python` nor the launcher has an installed interpreter; verification used the bundled runtime:
 
 ```powershell
-& 'C:\Users\Professor\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' -m jobmatch search 'Python Django PostgreSQL REST APIs' --limit 5
-& 'C:\Users\Professor\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' -m jobmatch evaluate
-& 'C:\Users\Professor\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' -m unittest discover -s tests -v
+python -m jobmatch search 'Python Django PostgreSQL REST APIs' --limit 5
+python -m jobmatch evaluate
+python -m unittest discover -s tests -v
 ```
 
 Search prints listings and cosine scores as JSON. Evaluation writes `reports/baseline.json`; use `--output path/to/report.json` to save another run. Timings vary by machine and load.
@@ -380,15 +380,11 @@ Keyword mode runs without model weights. Semantic/reranked search needs the sema
 
 ### Validation
 
-Audit: 2026-10-08. Repository structure, setup instructions and description were reviewed. 34 existing Python files passed syntax checks; changed files and new regression tests were checked separately. 1 JavaScript files passed node --check; JSX/TypeScript production builds were not run. 41 regression tests passed; 5 optional model/database tests were skipped. Syntax checks do not establish full runtime correctness. External APIs, live scraping, GUI interaction, notebook training and production deployment were not comprehensively exercised.
+Recorded checks from the previous maintenance review (2026-10-08): 34 existing Python files passed syntax checks; changed files and new regression tests were checked separately. 1 JavaScript files passed node --check; JSX/TypeScript production builds were not run. 41 regression tests passed; 5 optional model/database tests were skipped. Syntax checks do not establish full runtime correctness. External APIs, live scraping, GUI interaction, notebook training and production deployment were not comprehensively exercised.
 
 ```bash
 python -m unittest discover -s tests -v
 ```
-
-### Repository description
-
-The short GitHub description is provided in [REPOSITORY_DESCRIPTION.md](REPOSITORY_DESCRIPTION.md).
 
 ### Contributions
 
